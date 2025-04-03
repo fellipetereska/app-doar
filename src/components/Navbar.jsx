@@ -18,29 +18,25 @@ const Navbar = () => {
   }
 
   return (
-    <>
-      <nav className='w-full grid grid-cols-12 gap-4 items-center py-4 px-16 z-50'>
-        <div className='col-span-2 bg-white h-full flex items-center justify-center shadow-md rounded-md p-4 mx-4 cursor-pointer'>
-          <img src={logo} className='w-16' alt="logo" />
+    <nav className="absolute top-0 left-0 w-full grid grid-cols-12 gap-4 items-center py-4 px-16 z-[1002] bg-transparent backdrop-blur-md">
+      <div className="col-span-2 flex items-center justify-center shadow-md rounded-md p-4 mx-4 cursor-pointer bg-white/20 backdrop-blur-md">
+        <img src={logo} className="w-16" alt="logo" />
+      </div>
+      <div className="col-span-8 flex items-center shadow-md rounded-md py-3 px-6 mx-16 bg-white/20 backdrop-blur-md">
+        <SearchInput placeholder={"Buscar Instituição..."} />
+      </div>
+      <div className="col-span-2 shadow-md rounded-md p-3 mx-4 flex justify-center items-center gap-2 bg-white/20 backdrop-blur-md">
+        <div className="text-gray-200 hover:text-primary cursor-pointer">
+          <FaQuestionCircle />
         </div>
-        <div className='col-span-8 bg-white h-full flex items-center shadow-md rounded-md py-3 px-6 mx-16'>
-          <SearchInput
-            placeholder={'Buscar Instituição...'}
-          />
+        <div className="text-gray-200 hover:text-primary cursor-pointer">
+          <FaUserCircle />
         </div>
-        <div className='col-span-2 bg-white h-full shadow-md rounded-md p-3 mx-4 flex justify-center items-center gap-2'>
-          <div className='text-gray-400 hover:text-primary cursor-pointer'>
-            <FaQuestionCircle />
-          </div>
-          <div className='text-gray-400 hover:text-primary cursor-pointer'>
-            <FaUserCircle />
-          </div>
-          <p className='text-sm text-primary font-semibold select-none'>
-            Fellipe Tereska
-          </p>
-        </div>
-      </nav>
-    </>
+        <p className="text-sm text-white font-semibold select-none">
+          Fellipe Tereska
+        </p>
+      </div>
+    </nav>
   );
 };
 
