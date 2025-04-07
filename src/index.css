@@ -8,18 +8,19 @@
 }
 
 body {
-  /* background-color: #FFF8DC; */
+  background-color: #F3F4F6;
 }
 
 body::-webkit-scrollbar {
-  width: 6px;
+  width: 7px;
   height: 7px;
 }
 
 body::-webkit-scrollbar-thumb {
-  background: #7B68EE;
+  background: #328fc9;
 }
 
 body::-webkit-scrollbar-thumb:hover {
-  background: #7B68EE;
+  background: #046bad;
+  cursor: pointer;
 }

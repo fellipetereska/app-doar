@@ -12,8 +12,9 @@ import Footer from './components/Footer';
 import { Loading } from './components/Loading';
 
 // Paginas
-const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
+const HomeDoador = lazy(() => import('./pages/HomeDoador'));
+const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao'));
 
 function App() {
   return (
@@ -30,11 +31,14 @@ function App() {
             <Navbar />
 
             {/* Rotas */}
-            <div className='flex-grow pt-16'>
+            <div className='flex-grow'>
               <Routes>
                 <Route path="/login" element={<Login />} />
 
-                <Route path="/" element={<Home />} />
+                {/* Doador */}
+                <Route path="/" element={<HomeDoador />} />
+                {/* Instituição */}
+                <Route path="/instituicao" element={<HomeInstituicao />} />
               </Routes>
             </div>
 
