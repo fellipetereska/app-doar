@@ -82,9 +82,9 @@ function Sidebar() {
                   Assistidos
                 </button>
                 <button
-                  onClick={() => navigate("/instituicao/assistidos/lista-espera")}
+                  onClick={() => navigate("/instituicao/assistidos/lista_espera")}
                   className={`text-sm text-left px-2 py-1 rounded-md ${
-                    isActive("/instituicao/assistidos/lista-espera")
+                    isActive("/instituicao/assistidos/lista_espera")
                       ? "text-gray-800 font-semibold"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
