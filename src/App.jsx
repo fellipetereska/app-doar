@@ -2,12 +2,9 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import Layout from './components/Layout';
 
 import { AuthProvider } from './contexts/auth';
-
-// Componentes
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 
 import { Loading } from './components/Loading';
 
@@ -15,37 +12,37 @@ import { Loading } from './components/Loading';
 const Login = lazy(() => import('./pages/Login'));
 const HomeDoador = lazy(() => import('./pages/HomeDoador'));
 const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao'));
+const Estoque = lazy(() => import('./pages/Estoque'));
+const Assistidos = lazy(() => import('./pages/Assistidos'));
 
 function App() {
   return (
     // Autenticação
     <AuthProvider>
       <Router>
+        <Layout>
+          {/* Carregamento Asincrono das paginas */}
+          <div className='flex flex-col min-h-screen'>
 
-        {/* Carregamento Asincrono das paginas */}
-        <div className='flex flex-col min-h-screen'>
+            <Suspense fallback={<Loading />}>
 
-          <Suspense fallback={<Loading />}>
+              {/* Rotas */}
+              <div className='flex-grow'>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
 
-            {/* Menu */}
-            <Navbar />
+                  {/* Doador */}
+                  <Route path="/" element={<HomeDoador />} />
+                  {/* Instituição */}
+                  <Route path="/instituicao/" element={<HomeInstituicao />} />
+                  <Route path="/instituicao/estoque" element={<Estoque />} />
+                  <Route path="/instituicao/assistidos/assistidos" element={<Assistidos />} />
+                </Routes>
+              </div>
 
-            {/* Rotas */}
-            <div className='flex-grow'>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-
-                {/* Doador */}
-                <Route path="/" element={<HomeDoador />} />
-                {/* Instituição */}
-                <Route path="/instituicao" element={<HomeInstituicao />} />
-              </Routes>
-            </div>
-
-            {/* Rodapé */}
-            <Footer />
-          </Suspense>
-        </div>
+            </Suspense>
+          </div>
+        </Layout>
       </Router>
 
       {/* Mensagem */}
