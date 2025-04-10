@@ -4,7 +4,7 @@ import React from 'react';
 import TableDefault from '../components/Tables/TableDefault';
 import { SearchInput } from '../components/Inputs/searchInput';
 
-const Estoque = () => {
+const ListaEspera = () => {
   const columns = [
     { header: 'ID', accessor: 'id' },
     { header: 'Nome', accessor: 'name' },
@@ -57,4 +57,4 @@ const Estoque = () => {
   );
 };
 
-export default Estoque;
+export default ListaEspera;
