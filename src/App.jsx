@@ -15,6 +15,7 @@ const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao'));
 const Estoque = lazy(() => import('./pages/Estoque'));
 const Assistidos = lazy(() => import('./pages/Assistidos'));
 const ListaEspera = lazy(() => import('./pages/ListaEspera'));
+const TelaDoacao = lazy(() => import('./pages/TelaDoacao'));
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
                   <Route path="/instituicao/estoque" element={<Estoque />} />
                   <Route path="/instituicao/assistidos/assistidos" element={<Assistidos />} />
                   <Route path="/instituicao/assistidos/lista_espera" element={<ListaEspera />} />
+                  <Route path="/instituicao/assistidos/criar_doacao" element={<TelaDoacao />} />
                 </Routes>
               </div>
 

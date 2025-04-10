@@ -4,18 +4,19 @@ import Indicador from '../components/Cards/Indicador';
 
 const HomeInstituicao = () => {
   const columns = [
+    { header: 'ID', accessor: 'id' },
     { header: 'Nome', accessor: 'name' },
     { header: 'Email', accessor: 'email' },
     { header: 'Idade', accessor: 'age' },
   ];
 
   const data = [
-    { name: 'João', email: 'joao@email.com', age: 28 },
-    { name: 'Maria', email: 'maria@email.com', age: 32 },
-    { name: 'João', email: 'joao@email.com', age: 28 },
-    { name: 'Maria', email: 'maria@email.com', age: 32 },
-    { name: 'João', email: 'joao@email.com', age: 28 },
-    { name: 'Maria', email: 'maria@email.com', age: 32 },
+    { id: 1, name: 'João', email: 'joao@email.com', age: 28 },
+    { id: 2, name: 'Maria', email: 'maria@email.com', age: 32 },
+    { id: 3, name: 'João', email: 'joao@email.com', age: 28 },
+    { id: 4, name: 'Maria', email: 'maria@email.com', age: 32 },
+    { id: 5, name: 'João', email: 'joao@email.com', age: 28 },
+    { id: 6, name: 'Maria', email: 'maria@email.com', age: 32 },
   ];
 
   const handleEdit = (item) => {
