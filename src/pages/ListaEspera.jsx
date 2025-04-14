@@ -32,7 +32,7 @@ const ListaEspera = () => {
   return (
     <div className="min-h-screen flex flex-col px-10 py-4 justify-center">
       <div className=''>
-        <h1 className="text-3xl font-bold text-sky-700">LISTA DE ESPERA</h1>
+        <h1 className="text-2xl font-bold mb-4 text-sky-700">Lista de Espera</h1>
       </div>
       <div className="w-full flex justify-between items-center p-4">
         <div className="flex-grow flex justify-center">

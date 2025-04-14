@@ -59,8 +59,8 @@ function Sidebar() {
             {openEstoque && (
               <div className="ml-8 mt-1 flex flex-col gap-1">
                 <button
-                  onClick={() => navigate("/instituicao/estoque")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/estoque")
+                  onClick={() => navigate("/instituicao/estoque/estoque")}
+                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/estoque/estoque")
                       ? "text-gray-800 font-semibold"
                       : "text-gray-500 hover:text-gray-700"
                     }`}
@@ -68,8 +68,8 @@ function Sidebar() {
                   Estoque
                 </button>
                 <button
-                  onClick={() => navigate("/instituicao/assistidos/criar_doacao")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/assistidos/criar_doacao")
+                  onClick={() => navigate("/instituicao/estoque/criar_doacao")}
+                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/estoque/criar_doacao")
                       ? "text-gray-800 font-semibold"
                       : "text-gray-500 hover:text-gray-700"
                     }`}

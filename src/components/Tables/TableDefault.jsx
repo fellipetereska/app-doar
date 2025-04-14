@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 // Icons
-import { IoMdTrash } from "react-icons/io";
 import { IoIosOpen } from "react-icons/io";
+import { IoMdTrash } from "react-icons/io";
 
 function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8 }) {
   const [currentPage, setCurrentPage] = useState(1);
