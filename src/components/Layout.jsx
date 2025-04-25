@@ -10,11 +10,16 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-1">
-        {isInstituicao && <Sidebar />}
-        <div className="flex-1 flex flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        {isInstituicao && (
+          <div className="relative flex-shrink-0">
+            <Sidebar />
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
           {!isInstituicao && !isLogin && <Navbar />}
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto custom-scrollbar">
             {children}
           </main>
         </div>

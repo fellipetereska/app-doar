@@ -37,10 +37,10 @@ function App() {
                   <Route path="/" element={<HomeDoador />} />
                   {/* Instituição */}
                   <Route path="/instituicao/" element={<HomeInstituicao />} />
-                  <Route path="/instituicao/estoque/estoque" element={<Estoque />} />
-                  <Route path="/instituicao/estoque/criar_doacao" element={<TelaDoacao />} />
-                  <Route path="/instituicao/assistidos/assistidos" element={<Assistidos />} />
-                  <Route path="/instituicao/assistidos/lista_espera" element={<ListaEspera />} />
+                  <Route path="/instituicao/estoque" element={<Estoque />} />
+                  <Route path="/instituicao/doar" element={<TelaDoacao />} />
+                  <Route path="/instituicao/assistidos" element={<Assistidos />} />
+                  <Route path="/instituicao/lista-espera" element={<ListaEspera />} />
                 </Routes>
               </div>
 

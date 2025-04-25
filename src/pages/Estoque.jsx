@@ -10,14 +10,13 @@ import FormEstoque from '../components/Forms/FormEstoque';
 const Estoque = () => {
   const columns = [
     { header: 'ID', accessor: 'id' },
-    { header: 'Nome', accessor: 'name' },
-    { header: 'Email', accessor: 'email' },
-    { header: 'Idade', accessor: 'age' },
+    { header: 'Categoria', accessor: 'categoria' },
+    { header: 'Subcategoria', accessor: 'subcategoria' },
+    { header: 'Descrição', accessor: 'descricao' },
+    { header: 'Quantidade', accessor: 'quantidade' },
   ];
 
   const [data, setData] = useState([
-    { id: 1, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 2, name: 'Maria', email: 'maria@email.com', age: 32 },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,14 +33,13 @@ const Estoque = () => {
     const newItem = {
       id: data.length + 1,
       ...formData,
-      age: Number(formData.age),
     };
     setData((prev) => [...prev, newItem]);
     setIsModalOpen(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-10 py-4 justify-center">
+    <div className="min-h-screen flex flex-col px-10 py-4">
       <div className=''>
         <h1 className="text-2xl font-bold mb-4 text-sky-700">Estoque</h1>
       </div>

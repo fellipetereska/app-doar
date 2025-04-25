@@ -1,159 +1,143 @@
-import React, { useState } from "react";
+// Sidebar.jsx
+import { createContext, useState, useContext } from "react";
 import {
   Home,
   Boxes,
+  HeartHandshake,
   Users,
-  ChevronDown,
-  ChevronUp,
-  FileText,
+  Clock,
+  BarChart2,
+  ChevronFirst,
+  ChevronLast,
   Settings,
   LogOut,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
 
-function Sidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
+import ToolTip from "./Auxiliares/ToolTip";
+import logo from '../media/logo.png';
+import { Link, useLocation } from "react-router-dom";
 
-  const isActive = (path) => location.pathname === path;
-  const isPrefixActive = (prefix) => location.pathname.startsWith(prefix);
+const SidebarContext = createContext();
 
-  const [openAssistidos, setOpenAssistidos] = useState(false);
-  const [openEstoque, setOpenEstoque] = useState(false);
+export default function Sidebar() {
+  const [expanded, setExpanded] = useState(true);
+
+  const menuItems = [
+    { label: "Home", icon: <Home />, path: "/instituicao" },
+    { label: "Estoque", icon: <Boxes />, path: "/instituicao/estoque" },
+    { label: "Doar", icon: <HeartHandshake />, path: "/instituicao/doar" },
+    { label: "Assistidos", icon: <Users />, path: "/instituicao/assistidos" },
+    { label: "Lista de Espera", icon: <Clock />, path: "/instituicao/lista-espera" },
+    { label: "Relatórios", icon: <BarChart2 />, path: "/instituicao/relatorios" },
+  ];
 
   return (
-    <aside className="w-64 h-screen bg-white flex flex-col justify-between border-r border-gray-200">
-      {/* Topo */}
-      <div>
-        <div className="border-b mb-5 py-6">
-          <h1 className="text-center text-2xl font-bold text-gray-400">APP Doar</h1>
-        </div>
-        <nav className="flex flex-col gap-2 px-4 mt-5">
-          <button
-            onClick={() => navigate("/instituicao")}
-            className={`flex items-center gap-2 px-4 py-3 rounded-md font-medium ${isActive("/instituicao")
-                ? "bg-gray-100 text-gray-800"
-                : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            <Home size={20} />
-            HOME
-          </button>
-
-          {/* ESTOQUE com submenu */}
-          <div>
-            <button
-              onClick={() => setOpenEstoque(!openEstoque)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-md font-medium ${isPrefixActive("/instituicao/estoque")
-                  ? "bg-gray-100 text-gray-800"
-                  : "text-gray-600 hover:bg-gray-100"
-                }`}
-            >
-              <div className="flex items-center gap-2">
-                <Boxes size={20} />
-                ESTOQUE
-              </div>
-              {openEstoque ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-
-            {openEstoque && (
-              <div className="ml-8 mt-1 flex flex-col gap-1">
-                <button
-                  onClick={() => navigate("/instituicao/estoque/estoque")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/estoque/estoque")
-                      ? "text-gray-800 font-semibold"
-                      : "text-gray-500 hover:text-gray-700"
-                    }`}
-                >
-                  Estoque
-                </button>
-                <button
-                  onClick={() => navigate("/instituicao/estoque/criar_doacao")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/estoque/criar_doacao")
-                      ? "text-gray-800 font-semibold"
-                      : "text-gray-500 hover:text-gray-700"
-                    }`}
-                >
-                  Doar
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* ASSISTIDOS com submenu */}
-          <div>
-            <button
-              onClick={() => setOpenAssistidos(!openAssistidos)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-md font-medium ${isPrefixActive("/instituicao/assistidos")
-                  ? "bg-gray-100 text-gray-800"
-                  : "text-gray-600 hover:bg-gray-100"
-                }`}
-            >
-              <div className="flex items-center gap-2">
-                <Users size={20} />
-                ASSISTIDOS
-              </div>
-              {openAssistidos ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-
-            {openAssistidos && (
-              <div className="ml-8 mt-1 flex flex-col gap-1">
-                <button
-                  onClick={() => navigate("/instituicao/assistidos/assistidos")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/assistidos/assistidos")
-                      ? "text-gray-800 font-semibold"
-                      : "text-gray-500 hover:text-gray-700"
-                    }`}
-                >
-                  Assistidos
-                </button>
-                <button
-                  onClick={() => navigate("/instituicao/assistidos/lista_espera")}
-                  className={`text-sm text-left px-2 py-1 rounded-md ${isActive("/instituicao/assistidos/lista_espera")
-                      ? "text-gray-800 font-semibold"
-                      : "text-gray-500 hover:text-gray-700"
-                    }`}
-                >
-                  Lista de Espera
-                </button>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => navigate("/instituicao/relatorios")}
-            className={`flex items-center gap-2 px-4 py-3 rounded-md font-medium ${isActive("/instituicao/relatorios")
-                ? "bg-gray-100 text-gray-800"
-                : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            <FileText size={20} />
-            RELATÓRIOS
-          </button>
-        </nav>
-      </div>
-
-      {/* Rodapé */}
-      <div className="border-t mt-6 px-4 py-4 flex flex-col items-center gap-2">
-        <div className="flex items-center gap-2 w-full">
+    <aside className="h-screen">
+      <nav className="h-full flex flex-col bg-white border-r shadow-sm">
+        <div className="p-4 pb-2 flex justify-between items-center border-b mb-4">
+          <div></div>
           <img
-            src="https://i.pravatar.cc/40"
-            alt="User"
-            className="w-10 h-10 rounded-full"
+            src={logo}
+            className={`overflow-hidden transition-all ${expanded ? "w-16" : "w-0"
+              }`}
+            alt="Logo"
           />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Fellipe Tereska</p>
-            <p className="text-xs text-gray-500">fellipetereska@gmail.com</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
-            <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
-          </div>
+          <ToolTip
+            text={expanded ? "Minimizar" : "Expandir"}
+            position="right"
+            key={expanded ? "open" : "closed"}
+          >
+            <button
+              onClick={() => setExpanded((prev) => !prev)}
+              className="p-1.5 rounded-lg hover:bg-gray-100"
+            >
+              {expanded ? <ChevronFirst size={18} color="#6b7280" /> : <ChevronLast size={18} color="#6b7280" />}
+            </button>
+          </ToolTip>
         </div>
-        <p className="text-xs text-gray-400 mt-2">v 1.0.0</p>
-      </div>
+
+        <SidebarContext.Provider value={{ expanded }}>
+          <ul className="flex-1 px-3 space-y-2">
+            {menuItems.map((item) => (
+              <SidebarItem key={item.label} icon={item.icon} text={item.label} path={item.path} />
+            ))}
+          </ul>
+        </SidebarContext.Provider>
+
+        {/* Rodapé */}
+        <div className="border-t px-2 py-4">
+          <div className={`flex items-center ${expanded ? "gap-3" : "flex-col justify-center"}`}>
+            {expanded ? (
+              <>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">Fellipe Tereska</p>
+                  <p className="text-xs text-gray-500">fellipetereska@gmail.com</p>
+                </div>
+                <div className="ml-auto flex items-center gap-2">
+                  <ToolTip text="Configurações" position="top">
+                    <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                  </ToolTip>
+                  <ToolTip text="Sair" position="right">
+                    <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                  </ToolTip>
+                </div>
+              </>
+            ) : (
+              <>
+                <div
+                  className={`flex ${expanded ? "justify-between px-1" : "justify-center"} items-center gap-4`}
+                >
+                  <ToolTip text="Configurações" position="right">
+                    <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                  </ToolTip>
+                  <ToolTip text="Sair" position="right">
+                    <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                  </ToolTip>
+                </div>
+              </>
+            )}
+          </div>
+
+
+          <p className="text-xs text-gray-400 text-center mt-3">v 1.0.0</p>
+        </div>
+
+      </nav>
     </aside>
   );
 }
 
-export default Sidebar;
+function SidebarItem({ icon, text, path }) {
+  const { expanded } = useContext(SidebarContext);
+  const location = useLocation();
+
+  const isActive = location.pathname === path;
+
+  const itemContent = (
+    <Link to={path}>
+      <div
+        className={`flex items-center p-2 cursor-pointer rounded transition-colors
+          ${isActive ? "border-l-4 border-primary text-primary" : "text-gray-600 hover:text-gray-800"}`}
+      >
+        <span className="text-xl">{icon}</span>
+        {expanded && (
+          <span className="ml-3 text-sm font-medium transition-all">
+            {text}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+
+  return (
+    <li className="relative">
+      {expanded ? (
+        itemContent
+      ) : (
+        <ToolTip text={text} position="right">
+          {itemContent}
+        </ToolTip>
+      )}
+    </li>
+  );
+}

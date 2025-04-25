@@ -29,13 +29,36 @@ const TelaDoacao = () => {
   const [quantidade, setQuantidade] = useState(1);
   const [itensSelecionados, setItensSelecionados] = useState([]);
   const [step, setStep] = useState(1);
+  const [estoqueDisponivel, setEstoqueDisponivel] = useState(estoqueMock);
+  const [resultadosBusca, setResultadosBusca] = useState([]);
 
   const assistido = assistidosMock.find(a => a.id.toString() === assistidoId);
 
+  // Função de busca
+  const handleSearchItem = (value) => {
+    setSearchItem(value);
+    setItemSelecionado(null);
+
+    if (value.trim() === "") {
+      setResultadosBusca([]);
+      return;
+    }
+
+    // Aqui você pode aplicar um filtro local ou uma chamada de API
+    const resultados = estoqueDisponivel.filter(item =>
+      item.name.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setResultadosBusca(resultados);
+  };
+
+  // Função ao clicar no item
   const handleSelectItem = (item) => {
     setItemSelecionado(item);
-    setSearchItem(item.name);
+    setSearchItem(item.name); // opcional: preencher o input com o nome
+    setResultadosBusca([]); // limpa os resultados para fechar o dropdown
   };
+
 
   const handleAddItem = () => {
     if (!itemSelecionado || quantidade < 1) return;
@@ -74,48 +97,60 @@ const TelaDoacao = () => {
     setStep(1);
   };
 
-  const resultadosBusca = searchItem.length > 0
-    ? estoqueMock.filter(item =>
-      item.name.toLowerCase().includes(searchItem.toLowerCase())
-    )
-    : [];
-
   return (
     <div className="w-full px-16 mx-auto py-8">
       <h1 className="text-2xl font-bold mb-2 text-sky-700">Criar Doação</h1>
 
       {/* Etapas do processo */}
-      <div className="flex justify-center gap-8 mb-6">
+      <div className="relative flex items-center justify-between w-full max-w-3xl mx-auto px-4 mb-4">
         {[
           { id: 1, label: 'Assistido' },
           { id: 2, label: 'Itens' },
           { id: 3, label: 'Confirmar' }
-        ].map((etapa) => (
-          <div key={etapa.id} className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold 
-              ${step === etapa.id
-                  ? 'bg-sky-600 shadow-lg'
-                  : step > etapa.id
-                    ? 'bg-green-500'
-                    : 'bg-gray-300'
-                }`}
-            >
-              {etapa.id}
+        ].map((etapa, i, arr) => {
+          const isCompleted = step > etapa.id;
+          const isActive = step === etapa.id;
+          const isLast = i === arr.length - 1;
+
+          return (
+            <div key={etapa.id} className="relative flex-1 flex flex-col items-center text-sm text-center">
+
+              {/* Linha entre círculos */}
+              {!isLast && (
+                <div className="absolute top-5 left-1/2 w-full h-1 -translate-y-1/2 z-0">
+                  <div className={`h-1 w-full ${isCompleted ? 'bg-blue-500' : 'bg-gray-200'}`} />
+                </div>
+              )}
+
+              {/* Círculo numerado ou check */}
+              <div
+                className={`z-10 relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all
+            ${isCompleted
+                    ? 'bg-blue-100 text-blue-600 border-blue-400'
+                    : isActive
+                      ? 'bg-sky-600 text-white border-sky-600'
+                      : 'bg-gray-100 text-gray-400 border-gray-300'
+                  }`}
+              >
+                {isCompleted ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 16 12">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M1 5.917 5.724 10.5 15 1.5" />
+                  </svg>
+                ) : (
+                  etapa.id
+                )}
+              </div>
+
+              {/* Texto da etapa */}
+              <span className={`mt-2 ${isActive ? 'text-sky-600 font-semibold' :
+                isCompleted ? 'text-blue-400' :
+                  'text-gray-400'
+                }`}>
+                {etapa.label}
+              </span>
             </div>
-            <span
-              className={`mt-1 text-sm font-medium 
-              ${step === etapa.id
-                  ? 'text-sky-600'
-                  : step > etapa.id
-                    ? 'text-green-600'
-                    : 'text-gray-500'
-                }`}
-            >
-              {etapa.label}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className='mx-auto flex flex-col space-y-6 rounded-md bg-white shadow px-10 py-6'>
@@ -149,7 +184,7 @@ const TelaDoacao = () => {
 
         {/* Passo 2 - Itens */}
         {step === 2 && (
-          <div className='w-full border flex flex-col space-y-4 rounded-md px-6 py-4'>
+          <div className='w-full flex flex-col space-y-4 rounded-md px-6 py-4'>
             <h2 className="text-2xl font-bold text-sky-700 text-center">Adicionar Itens</h2>
             <div className='flex justify-between items-center gap-4'>
               <div className="relative w-full">
@@ -157,10 +192,7 @@ const TelaDoacao = () => {
                 <input
                   type="text"
                   value={searchItem}
-                  onChange={(e) => {
-                    setSearchItem(e.target.value);
-                    setItemSelecionado(null);
-                  }}
+                  onChange={(e) => handleSearchItem(e.target.value)}
                   className="w-full border rounded px-3 py-2"
                   placeholder="Digite o nome do item..."
                 />
@@ -193,7 +225,7 @@ const TelaDoacao = () => {
               <div className="flex items-end gap-4 mt-6">
                 <button
                   onClick={handleAddItem}
-                  className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded"
+                  className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded cursor-pointer"
                   disabled={!itemSelecionado}
                 >
                   <IoIosAddCircle />
@@ -229,7 +261,7 @@ const TelaDoacao = () => {
               <button
                 disabled={itensSelecionados.length === 0}
                 onClick={() => setStep(3)}
-                className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded disabled:opacity-50"
+                className={`text-white px-6 py-2 rounded disabled:opacity-50 ${itensSelecionados.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-sky-700 bg-sky-600'}`}
               >
                 Próximo
               </button>

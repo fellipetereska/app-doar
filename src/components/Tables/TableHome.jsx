@@ -23,7 +23,7 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 3 }) {
     <div className="flex flex-col gap-4">
       <div className="max-h-[75vh] overflow-auto custom-scrollbar rounded-md shadow-md">
         <table className="min-w-full bg-white text-sm text-center">
-          <thead className="border border-gray-200 text-gray-700 sticky top-0">
+          <thead className="border-b border-gray-200 text-gray-700 sticky top-0">
             <tr>
               {columns.map((col, idx) => (
                 <th key={idx} className="px-6 py-2 font-medium">

@@ -1,30 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TableHome from '../components/Tables/TableHome';
 import Indicador from '../components/Cards/Indicador';
+import Modal from '../components/Modals/Modal';
 
 const HomeInstituicao = () => {
+  const [selectedDonation, setSelectedDonation] = useState(null);
+  const [isOpenModalDonation, setIsOpenModalDonation] = useState(false);
+
   const columns = [
     { header: 'ID', accessor: 'id' },
-    { header: 'Nome', accessor: 'name' },
-    { header: 'Email', accessor: 'email' },
-    { header: 'Idade', accessor: 'age' },
+    { header: 'Doador', accessor: 'doador' },
+    { header: 'Telefone', accessor: 'telefone' },
+    { header: 'Tipo', accessor: 'tipo' },
+    { header: 'Ação', accessor: 'action' }
   ];
 
   const data = [
-    { id: 1, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 2, name: 'Maria', email: 'maria@email.com', age: 32 },
-    { id: 3, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 4, name: 'Maria', email: 'maria@email.com', age: 32 },
-    { id: 5, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 6, name: 'Maria', email: 'maria@email.com', age: 32 },
+    {
+      id: 1,
+      doador: [{ id: 1, name: 'Fellipe', telefone: '(43) 99959-5962', documento: '104.179.199-10' }],
+      data: "2025-04-15",
+      tipo: 'Entrega',
+      itens: [{ itemId: 1, nome: "Cesta Básica", quantidade: 2 }, { itemId: 3, nome: "Kit de Higiene", quantidade: 1 }]
+    },
+    {
+      id: 2,
+      doador: [{ id: 2, name: 'Ana Lima', telefone: '(11) 91234-5678', documento: '321.654.987-00' }],
+      data: "2025-04-14",
+      tipo: 'Retirada',
+      itens: [{ itemId: 2, nome: "Cobertor", quantidade: 3 }]
+    },
+    {
+      id: 3,
+      doador: [{ id: 3, name: 'Carlos Mendes', telefone: '(21) 98765-4321', documento: '852.963.741-20' }],
+      data: "2025-04-13",
+      tipo: 'Entrega',
+      itens: [{ itemId: 1, nome: "Cesta Básica", quantidade: 1 }, { itemId: 2, nome: "Cobertor", quantidade: 2 }, { itemId: 4, nome: "Máscaras", quantidade: 5 }]
+    },
+    {
+      id: 4,
+      doador: [{ id: 4, name: 'Juliana Costa', telefone: '(31) 98888-0000', documento: '999.888.777-66' }],
+      data: "2025-04-12",
+      tipo: 'Retirada',
+      itens: [{ itemId: 5, nome: "Fraldas", quantidade: 4 }]
+    }
   ];
 
-  const handleEdit = (item) => {
-    console.log('Editar:', item);
-  };
+  // Função para mapear os dados para a estrutura da tabela
+  const transformedData = data.map(item => ({
+    id: item.id,
+    doador: item.doador[0]?.name || '-',
+    telefone: item.doador[0]?.telefone || '-',
+    tipo: item.tipo || '-',
+    action: (
+      <button
+        className="text-blue-500"
+        onClick={() => setSelectedDonation(item)}>
+        Abrir
+      </button>
+    )
+  }));
 
-  const handleDelete = (item) => {
-    console.log('Excluir:', item);
+  const handleEdit = (item) => {
+    setIsOpenModalDonation(!isOpenModalDonation);
+    console.log('Editar:', item);
   };
 
   return (
@@ -37,24 +76,32 @@ const HomeInstituicao = () => {
         <Indicador title="Doações Enviadas Abr/25" value={26} borderColor="border-green-500" textColor="text-green-500"></Indicador>
         <Indicador title="Lista de Espera 2025" value={12} borderColor="border-purple-500" textColor="text-purple-500"></Indicador>
       </div>
+      {/* Doações Recebidas */}
       <div className='mt-8'>
         <h2 className='text-lg font-bold mb-2 text-sky-700'>Doações Recebidas</h2>
         <TableHome
           columns={columns}
-          data={data}
+          data={transformedData}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </div>
-      <div className='mt-4'>
-        <h2 className='text-lg font-bold mb-2 text-sky-700'>Doações Globais</h2>
+      {/* Doações Globais */}
+      <div className='mt-8'>
+        <h2 className='text-lg font-bold mb-2 text-sky-700'>Doações Gerais</h2>
         <TableHome
           columns={columns}
-          data={data}
+          data={transformedData}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </div>
+      {/* Modal */}
+      {selectedDonation && (
+        <Modal
+          donation={selectedDonation}
+          isOpen={isOpenModalDonation}
+          onClose={() => setIsOpenModalDonation(!isOpenModalDonation)}
+        />
+      )}
     </div>
   );
 };

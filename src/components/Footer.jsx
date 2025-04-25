@@ -19,9 +19,8 @@ const Footer = () => {
               &copy; {new Date().getFullYear()} Todos os direitos reservados
             </span>
           </div>
-          
 
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 mb-2 md:mb-0">
             <a href="/termos" className="text-gray-500 hover:text-primary text-sm transition-colors">
               Termos de uso
             </a>
@@ -32,12 +31,6 @@ const Footer = () => {
               Contato
             </a>
           </div>
-        </div>
-        
-        <div className="md:hidden text-center mt-2">
-          <p className="text-gray-500 text-xs">
-            &copy; {new Date().getFullYear()} Doar - Todos os direitos reservados
-          </p>
         </div>
       </div>
     </footer>

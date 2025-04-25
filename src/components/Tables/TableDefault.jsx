@@ -23,7 +23,7 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8 }) {
     <div className="flex flex-col gap-4">
       <div className="max-h-[75vh] overflow-auto custom-scrollbar rounded-md shadow-md">
         <table className="min-w-full bg-white text-sm text-center">
-          <thead className="border border-gray-200 text-gray-700 sticky top-0">
+          <thead className="border-b border-gray-200 text-gray-700 sticky top-0">
             <tr>
               {columns.map((col, idx) => (
                 <th key={idx} className="px-6 py-4 font-bold">
@@ -34,38 +34,46 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8 }) {
             </tr>
           </thead>
 
-          {/* Corpo da tabela com dados paginados */}
           <tbody className="divide-y divide-gray-100">
-            {currentData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
-                {columns.map((col, i) => (
-                  <td key={i} className="px-6 py-4">
-                    {row[col.accessor]}
-                  </td>
-                ))}
-                {(onEdit || onDelete) && (
-                  <td className="px-6 py-4 flex justify-center items-center gap-2 text-base">
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(row)}
-                        className="text-blue-500 hover:text-blue-800 cursor-pointer"
-                      >
-                        <IoIosOpen />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => onDelete(row)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
-                      >
-                        <IoMdTrash />
-                      </button>
-                    )}
-                  </td>
-                )}
+            {currentData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length + ((onEdit || onDelete) ? 1 : 0)} className="px-6 py-4 text-center text-gray-400">
+                  Nenhum item encontrado.
+                </td>
               </tr>
-            ))}
+            ) : (
+              currentData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  {columns.map((col, i) => (
+                    <td key={i} className="px-6 py-4">
+                      {row[col.accessor] || '-'}
+                    </td>
+                  ))}
+                  {(onEdit || onDelete) && (
+                    <td className="px-6 py-4 flex justify-center items-center gap-2 text-base">
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(row)}
+                          className="text-blue-500 hover:text-blue-800 cursor-pointer"
+                        >
+                          <IoIosOpen />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          onClick={() => onDelete(row)}
+                          className="text-red-500 hover:text-red-700 cursor-pointer"
+                        >
+                          <IoMdTrash />
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
+
         </table>
 
         {/* Controles de paginação */}
