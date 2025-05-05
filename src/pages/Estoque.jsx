@@ -65,7 +65,7 @@ const Estoque = () => {
         onDelete={handleDelete}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar Item ao Estoque">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar Item ao Estoque" paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!">
         <FormEstoque onSubmit={handleAddItem} />
       </Modal>
     </div >

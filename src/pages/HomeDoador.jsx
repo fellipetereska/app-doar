@@ -6,6 +6,7 @@ import placeholderImage from "../media/images.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Modal from "react-modal";
+import Login from "./Login"
 import {
   FiX,
   FiCheck,

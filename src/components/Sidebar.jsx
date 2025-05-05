@@ -99,7 +99,7 @@ export default function Sidebar() {
           </div>
 
 
-          <p className="text-xs text-gray-400 text-center mt-3">v 1.0.0</p>
+          <p className="text-xs text-gray-400 text-center mt-3 select-none">v 1.0.0</p>
         </div>
 
       </nav>

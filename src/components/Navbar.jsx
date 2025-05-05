@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useAuth from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
 import logo from '../media/logo.png';
 import { SearchInput } from './Inputs/searchInput';
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaQuestionCircle } from "react-icons/fa";
 
 function Navbar() {
+  const navigate = useNavigate();
+
+  const { isAuthenticated, user } = useAuth();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -24,27 +35,39 @@ function Navbar() {
         </div>
 
         {/* User */}
-        <div className="relative flex items-center h-[42px] bg-white shadow-md rounded-md px-4 ml-2">
-          <div
-            className="flex items-center gap-2 cursor-pointer text-gray-800 hover:text-primary"
-            onClick={toggleMenu}
-          >
-            <FaUserCircle className="text-lg" />
-            <span className="hidden md:inline text-sm font-semibold select-none">
-              Fellipe Tereska
-            </span>
-          </div>
+        <div className="relative flex items-center h-[42px] bg-white shadow-md rounded-md px-4 ml-2 gap-2">
+          {!isAuthenticated && (
+            <div className="flex items-center gap-2">
+              <div className="cursor-pointer hover:text-primary">
+                <FaQuestionCircle className="text-xl" />
+              </div>
+              <div className="cursor-pointer hover:text-primary" onClick={() => navigate("/login")}>
+                <FaUserCircle className="text-xl" />
+              </div>
+            </div>
+          )}
+          {isAuthenticated && user && (
+            <div
+              className="flex items-center gap-2 cursor-pointer text-gray-800 hover:text-primary"
+              onClick={toggleMenu}
+            >
+              <FaUserCircle className="text-lg" />
+              <span className="hidden md:inline text-sm font-semibold select-none">
+                {user.nome}
+              </span>
+            </div>
+          )}
 
           {/* Dropdown */}
           {isMenuOpen && (
             <div className="absolute top-full right-0 mt-1 w-40 bg-white rounded-md shadow-md z-50">
               {/* Flechinha */}
-              <div className="absolute -top-1 right-6 w-2 h-2 bg-white rotate-45"></div>
+              <div className="absolute -top-1 right-6 w-2 h-2 bg-white rotate-45 select-none"></div>
 
-              <ul className="flex flex-col p-2 text-sm text-gray-700">
-                <li className="p-2 hover:bg-gray-100 cursor-pointer">Perfil</li>
-                <li className="p-2 hover:bg-gray-100 cursor-pointer">Configurações</li>
-                <li className="p-2 hover:bg-gray-100 cursor-pointer">Sair</li>
+              <ul className="flex flex-col p-2 text-sm text-gray-700 select-none">
+                <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Perfil</li>
+                <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Configurações</li>
+                <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Sair</li>
               </ul>
             </div>
           )}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, paragraph, children }) => {
   if (!isOpen) return null;
 
   return (
@@ -11,9 +11,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         <div className="flex justify-between items-center px-6 py-3 border-b">
           <div className="flex flex-col">
             <h1 className="text-xl font-bold text-sky-700">{title}</h1>
-            <p className="text-sm text-gray-500">
-              Preencha o formulário e clique em <i>"Salvar"</i> para adicionar um item ao estoque!
-            </p>
+            {paragraph && <p className="text-sm text-gray-500">{paragraph}</p>}
           </div>
           <button
             type="button"
