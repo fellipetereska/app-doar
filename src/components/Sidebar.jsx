@@ -16,10 +16,17 @@ import {
 import ToolTip from "./Auxiliares/ToolTip";
 import logo from '../media/logo.png';
 import { Link, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const SidebarContext = createContext();
 
 export default function Sidebar() {
+
+  const { signout } = useAuth();
+
+  const navigate = useNavigate();
+
   const [expanded, setExpanded] = useState(true);
 
   const menuItems = [
@@ -31,6 +38,11 @@ export default function Sidebar() {
     { label: "Relatórios", icon: <BarChart2 />, path: "/instituicao/relatorios" },
   ];
 
+  const logout = () => {
+    navigate("/login");
+    signout();
+  }
+
   return (
     <aside className="h-screen">
       <nav className="h-full flex flex-col bg-white border-r shadow-sm">
@@ -38,8 +50,7 @@ export default function Sidebar() {
           <div></div>
           <img
             src={logo}
-            className={`overflow-hidden transition-all ${expanded ? "w-16" : "w-0"
-              }`}
+            className={`overflow-hidden ${expanded ? "w-16" : "w-0"}`}
             alt="Logo"
           />
           <ToolTip
@@ -78,7 +89,9 @@ export default function Sidebar() {
                     <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
-                    <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <button type="button" onClick={logout}>
+                      <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    </button>
                   </ToolTip>
                 </div>
               </>
@@ -91,7 +104,9 @@ export default function Sidebar() {
                     <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
-                    <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <button type="button" onClick={logout}>
+                      <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    </button>
                   </ToolTip>
                 </div>
               </>

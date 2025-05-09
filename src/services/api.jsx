@@ -1,0 +1,1 @@
+export const connect = "http://localhost:5268/api";

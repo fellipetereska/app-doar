@@ -1,12 +1,12 @@
-import { useLocation } from "react-router-dom";
+import useAuth from '../hooks/useAuth';
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 
 export default function Layout({ children }) {
-  const location = useLocation();
-  const isInstituicao = location.pathname.startsWith("/instituicao");
-  const isLogin = location.pathname === "/login";
+  const { user } = useAuth();
+  const isInstituicao = user?.role === 'instituicao';
+  const isDoador = user?.role === 'doador';
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -18,14 +18,14 @@ export default function Layout({ children }) {
         )}
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          {!isInstituicao && !isLogin && <Navbar />}
+          {isDoador && <Navbar />}
           <main className="flex-1 overflow-auto custom-scrollbar">
             {children}
           </main>
         </div>
       </div>
 
-      {!isInstituicao && !isLogin && <Footer />}
+      {isDoador && <Footer />}
     </div>
   );
 }

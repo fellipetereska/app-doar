@@ -9,7 +9,7 @@ import { FaUserCircle, FaQuestionCircle } from "react-icons/fa";
 function Navbar() {
   const navigate = useNavigate();
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, signout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -20,6 +20,11 @@ function Navbar() {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [isAuthenticated]);
+
+  const logout = () => {
+    signout();
+    navigate("/login"); 
+  }
 
   return (
     <>
@@ -53,7 +58,7 @@ function Navbar() {
             >
               <FaUserCircle className="text-lg" />
               <span className="hidden md:inline text-sm font-semibold select-none">
-                {user.nome}
+                {user.nome || ''}
               </span>
             </div>
           )}
@@ -67,7 +72,7 @@ function Navbar() {
               <ul className="flex flex-col p-2 text-sm text-gray-700 select-none">
                 <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Perfil</li>
                 <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Configurações</li>
-                <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer">Sair</li>
+                <li className="p-2 hover:bg-gray-100 rounded-sm cursor-pointer" onClick={logout}>Sair</li>
               </ul>
             </div>
           )}
