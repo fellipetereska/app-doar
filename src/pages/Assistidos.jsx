@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Componentes
 import TableDefault from '../components/Tables/TableDefault';
 import { SearchInput } from '../components/Inputs/searchInput';
 import Modal from '../components/Modals/Modal';
 import FormAssistido from '../components/Forms/FormAssistido';
+import { connect } from "../services/api";
+import { toast } from 'react-toastify';
 
 const Assistidos = () => {
   const columns = [
@@ -15,13 +17,25 @@ const Assistidos = () => {
     { header: 'Endereço', accessor: 'endereco' },
   ];
 
-  const [data, setData] = useState([
-    { id: 1, nome: 'João', documento: '123.456.789-00', telefone: '(11) 1234-5678', endereco: 'Rua A, 123' },
-    { id: 2, nome: 'Maria', documento: '987.654.321-00', telefone: '(21) 9876-5432', endereco: 'Rua B, 456' },
-    { id: 3, nome: 'João', documento: '123.456.789-00', telefone: '(11) 1234-5678', endereco: 'Rua A, 123' },
-  ]);
+  const [assistidos, setAssistidos] = useState([]);
+  const [selectedAssistido, setSelectedAssistido] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchAssistidos = async () => {
+    try {
+      const response = await fetch(`${connect}/assistido`);
+      const data = await response.json();
+      console.log(data);
+      setAssistidos(data);
+    } catch (error) {
+      console.error('Erro ao buscar assistidos:', error);
+    }
+  }
+
+  useEffect(() => {
+    fetchAssistidos();
+  }, []);
 
   const handleEdit = (item) => {
     console.log('Editar:', item);
@@ -31,14 +45,41 @@ const Assistidos = () => {
     console.log('Excluir:', item);
   };
 
-  const handleAddItem = (formData) => {
-    const newItem = {
-      id: data.length + 1,
-      ...formData,
-    };
-    setData((prev) => [...prev, newItem]);
-    setIsModalOpen(false);
+  const handleAddItem = async (formData) => {
+    try {
+      const assistido = {
+        ...formData,
+        latitude: 0.0,
+        longitude: 0.0,
+        status_lista_espera: 0,
+      };
+
+      console.log("Enviando assistido:", assistido);
+
+      const response = await fetch(`${connect}/assistido`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(assistido),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Erro ao cadastrar assistido.');
+      }
+
+      toast.success('Assistido cadastrado com sucesso!');
+      await fetchAssistidos();
+      setIsModalOpen(false);
+
+    } catch (error) {
+      console.error("Erro ao cadastrar assistido:", error);
+      toast.error(error.message || "Erro ao cadastrar assistido");
+    }
   };
+
 
   return (
     <div className="min-h-screen flex flex-col px-10 py-4">
@@ -60,7 +101,7 @@ const Assistidos = () => {
       </div>
       <TableDefault
         columns={columns}
-        data={data}
+        data={assistidos}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
