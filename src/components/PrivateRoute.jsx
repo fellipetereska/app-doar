@@ -1,15 +1,20 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import { Navigate } from 'react-router-dom';
 
-function PrivateRoute({ children }) {
-	const { isAuthenticated } = useAuth();
+function PrivateRoute({ children, requiredPermission }) {
+	const { isAuthenticated, user } = useAuth();
 
-	return isAuthenticated ? (
-		children
-	) : (
-		<Navigate to="/login" replace />
-	);
+	if (!isAuthenticated) {
+		return <Navigate to="/login" replace />;
+	}
+	
+	if (user?.role !== requiredPermission) {
+		const path = user?.role === 'instituicao' ? '/instituicao' : '/';
+		return <Navigate to={path} replace />;
+	}
+
+	return children;
 }
 
 export default PrivateRoute;

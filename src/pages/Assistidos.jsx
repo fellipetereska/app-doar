@@ -1,25 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Componentes
 import TableDefault from '../components/Tables/TableDefault';
 import { SearchInput } from '../components/Inputs/searchInput';
+import Modal from '../components/Modals/Modal';
+import FormAssistido from '../components/Forms/FormAssistido';
+import { connect } from "../services/api";
+import { toast } from 'react-toastify';
 
 const Assistidos = () => {
   const columns = [
     { header: 'ID', accessor: 'id' },
-    { header: 'Nome', accessor: 'name' },
-    { header: 'Email', accessor: 'email' },
-    { header: 'Idade', accessor: 'age' },
+    { header: 'Nome', accessor: 'nome' },
+    { header: 'Documento', accessor: 'documento' },
+    { header: 'Telefone', accessor: 'telefone' },
+    { header: 'Endereço', accessor: 'endereco' },
   ];
 
-  const data = [
-    { id: 1, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 2, name: 'Maria', email: 'maria@email.com', age: 32 },
-    { id: 3, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 4, name: 'Maria', email: 'maria@email.com', age: 32 },
-    { id: 5, name: 'João', email: 'joao@email.com', age: 28 },
-    { id: 6, name: 'Maria', email: 'maria@email.com', age: 32 },
-  ];
+  const [assistidos, setAssistidos] = useState([]);
+  const [selectedAssistido, setSelectedAssistido] = useState(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchAssistidos = async () => {
+    try {
+      const response = await fetch(`${connect}/assistido`);
+      const data = await response.json();
+      console.log(data);
+      setAssistidos(data);
+    } catch (error) {
+      console.error('Erro ao buscar assistidos:', error);
+    }
+  }
+
+  useEffect(() => {
+    fetchAssistidos();
+  }, []);
 
   const handleEdit = (item) => {
     console.log('Editar:', item);
@@ -29,8 +45,44 @@ const Assistidos = () => {
     console.log('Excluir:', item);
   };
 
+  const handleAddItem = async (formData) => {
+    try {
+      const assistido = {
+        ...formData,
+        latitude: 0.0,
+        longitude: 0.0,
+        status_lista_espera: 0,
+      };
+
+      console.log("Enviando assistido:", assistido);
+
+      const response = await fetch(`${connect}/assistido`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(assistido),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Erro ao cadastrar assistido.');
+      }
+
+      toast.success('Assistido cadastrado com sucesso!');
+      await fetchAssistidos();
+      setIsModalOpen(false);
+
+    } catch (error) {
+      console.error("Erro ao cadastrar assistido:", error);
+      toast.error(error.message || "Erro ao cadastrar assistido");
+    }
+  };
+
+
   return (
-    <div className="min-h-screen flex flex-col px-10 py-4 justify-center">
+    <div className="min-h-screen flex flex-col px-10 py-4">
       <div className=''>
         <h1 className="text-2xl font-bold mb-4 text-sky-700">Assistido</h1>
       </div>
@@ -42,17 +94,21 @@ const Assistidos = () => {
         </div>
 
         <div className="ml-4">
-          <button className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-md">
+          <button className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-md" onClick={() => setIsModalOpen(true)}>
             + Novo
           </button>
         </div>
       </div>
       <TableDefault
         columns={columns}
-        data={data}
+        data={assistidos}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Cadastrar um Assistido">
+        <FormAssistido onSubmit={handleAddItem} />
+      </Modal>
     </div >
   );
 };
