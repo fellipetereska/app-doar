@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import placeholderImage from "../../media/images.png";
+import placeholderImage from "../media/images.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Modal from "react-modal";
@@ -163,7 +163,6 @@ const Home = () => {
   const [addressName, setAddressName] = useState("");
   const [editingAddressId, setEditingAddressId] = useState(null);
 
-  // Carrega endereços salvos do localStorage
   useEffect(() => {
     const saved = localStorage.getItem("savedAddresses");
     if (saved) {
@@ -171,7 +170,6 @@ const Home = () => {
     }
   }, []);
 
-  // Salva endereços no localStorage quando mudam
   useEffect(() => {
     localStorage.setItem("savedAddresses", JSON.stringify(savedAddresses));
   }, [savedAddresses]);
@@ -237,7 +235,6 @@ const Home = () => {
 
   const nextStep = () => {
     if (currentStep === 2 && deliveryMethod === "collect") {
-      // Validação dos campos de endereço
       if (
         !address.cep ||
         !address.logradouro ||
@@ -361,13 +358,11 @@ const Home = () => {
     };
 
     if (editingAddressId) {
-      // Editar endereço existente
       setSavedAddresses(savedAddresses.map(addr => 
         addr.id === editingAddressId ? newAddress : addr
       ));
       toast.success("Endereço atualizado com sucesso!");
     } else {
-      // Adicionar novo endereço
       setSavedAddresses([...savedAddresses, newAddress]);
       toast.success("Endereço salvo com sucesso!");
     }
@@ -845,7 +840,6 @@ const Home = () => {
         ))}
       </MapContainer>
 
-      {/* Modal de informações da instituição */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
@@ -940,7 +934,6 @@ const Home = () => {
     )}
   </Modal>
 
-  {/* Modal de doação */}
   <Modal
     isOpen={donationModalIsOpen}
     onRequestClose={closeDonationModal}
@@ -991,7 +984,6 @@ const Home = () => {
     </div>
   </Modal>
 
-  {/* Modal para adicionar itens */}
   <Modal
     isOpen={addItemModalIsOpen}
     onRequestClose={closeAddItemModal}
@@ -1220,7 +1212,6 @@ const Home = () => {
     </div>
   </Modal>
 
-  {/* Modal para gerenciar endereços */}
   <Modal
     isOpen={addressModalIsOpen}
     onRequestClose={closeAddressModal}
