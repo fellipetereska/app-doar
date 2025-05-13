@@ -1,0 +1,37 @@
+import React from 'react';
+import MapComponent from './components/Map/MapComponent';
+import CompanyInfoModal from './components/CompanyInfoModal/CompanyInfoModal';
+import DonationModal from './components/DonationModal/DonationModal';
+import AddItemModal from './components/AddItemModal/AddItemModal';
+import AddressModal from './components/AddressModal/AdressModal';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const HomeDoador = () => {
+  return (
+    <div className="relative w-full h-screen">
+      <MapComponent />
+      
+      <CompanyInfoModal />
+      <DonationModal />
+      
+      <AddItemModal /> 
+      <AddressModal />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
+  );
+};
+
+export default HomeDoador;

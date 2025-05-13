@@ -1,3 +1,5 @@
+import React from "react";
+
 export function Loading() {
     return (
       <div role="status" className='flex justify-center items-center gap-2 text-zinc-400'>

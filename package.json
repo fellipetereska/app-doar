@@ -14,12 +14,12 @@
     "react-modal": "^3.16.3",
     "react-router-dom": "^6.27.0",
     "react-scripts": "^5.0.1",
-    "react-toastify": "^10.0.6",
+    "react-toastify": "^8.1.0",
     "router-dom": "^3.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
