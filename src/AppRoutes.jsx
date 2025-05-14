@@ -22,7 +22,7 @@ function AppRoutes() {
             <Routes>
               <Route path="/login" element={<Login />} />
               {/* Rotas Doador */}
-              <Route path="/" element={<PrivateRoute requiredPermission={"doador"}><HomeDoador /></PrivateRoute>} />
+              <Route path="/" element={<HomeDoador />} />
 
               {/* Rotas Instituição */}
               <Route path="/instituicao" element={<PrivateRoute requiredPermission={"instituicao"}><HomeInstituicao /></PrivateRoute>} />

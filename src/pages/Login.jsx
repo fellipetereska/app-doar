@@ -89,7 +89,6 @@ const Login = () => {
       const destino = data.usuario.role === "instituicao" ? "/instituicao" : "/";
       navigate(destino);
 
-
       const dados = {
         ...data.usuario,
         token: data.token,

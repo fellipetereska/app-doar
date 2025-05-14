@@ -6,7 +6,7 @@ function PrivateRoute({ children, requiredPermission }) {
 	const { isAuthenticated, user } = useAuth();
 
 	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to="/" replace />;
 	}
 	
 	if (user?.role !== requiredPermission) {
