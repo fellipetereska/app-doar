@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from "../services/api";
+import { toast } from 'react-toastify';
 
 // Componentes
 import TableDefault from '../components/Tables/TableDefault';
 import { SearchInput } from '../components/Inputs/searchInput';
 import Modal from '../components/Modals/Modal';
 import FormAssistido from '../components/Forms/FormAssistido';
-import { connect } from "../services/api";
-import { toast } from 'react-toastify';
+import { getInstituicaoId, formatarEndereco, formatarTelefone, formatarDocumento } from '../components/Auxiliares/helper';
 
 const Assistidos = () => {
   const columns = [
@@ -17,18 +18,33 @@ const Assistidos = () => {
     { header: 'Endereço', accessor: 'endereco' },
   ];
 
+  const [instituicaoId, setInstituicaoId] = useState(getInstituicaoId());
+
   const [assistidos, setAssistidos] = useState([]);
   const [selectedAssistido, setSelectedAssistido] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fetchAssistidos = async () => {
     try {
-      const response = await fetch(`${connect}/assistido`);
+      setLoading(true);
+      const queryParams = new URLSearchParams({ instituicaId: instituicaoId }).toString();
+      const response = await fetch(`${connect}/assistido?${queryParams}`);
       const data = await response.json();
-      console.log(data);
-      setAssistidos(data);
+
+      // Formatando endereço
+      const dadosFormatados = data.map((item) => ({
+        ...item,
+        documento: formatarDocumento(item),
+        telefone: formatarTelefone(item),
+        endereco: formatarEndereco(item),
+      }));
+
+      setAssistidos(dadosFormatados);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error('Erro ao buscar assistidos:', error);
     }
   }
@@ -49,12 +65,9 @@ const Assistidos = () => {
     try {
       const assistido = {
         ...formData,
-        latitude: 0.0,
-        longitude: 0.0,
         status_lista_espera: 0,
+        instituicao_id: instituicaoId
       };
-
-      console.log("Enviando assistido:", assistido);
 
       const response = await fetch(`${connect}/assistido`, {
         method: 'POST',
@@ -80,7 +93,6 @@ const Assistidos = () => {
     }
   };
 
-
   return (
     <div className="min-h-screen flex flex-col px-10 py-4">
       <div className=''>
@@ -104,6 +116,7 @@ const Assistidos = () => {
         data={assistidos}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        isLoading={loading}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Cadastrar um Assistido">

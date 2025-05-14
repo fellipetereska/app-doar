@@ -67,7 +67,7 @@ const HomeInstituicao = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4 justify-center">
+    <div className="min-h-screen flex flex-col p-4">
       <h1 className="text-2xl font-bold mb-4 text-sky-700">Home</h1>
       <div className='grid grid-cols-5 gap-4'>
         <Indicador title="Doações Recebidas 2025" value={146} borderColor="border-blue-500" textColor="text-blue-500"></Indicador>

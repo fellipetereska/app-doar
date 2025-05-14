@@ -23,7 +23,7 @@ function Navbar() {
 
   const logout = () => {
     signout();
-    navigate("/login"); 
+    navigate("/"); 
   }
 
   return (

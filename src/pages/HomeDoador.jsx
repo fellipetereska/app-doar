@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { Navigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import placeholderImage from "../media/images.png";
@@ -126,6 +128,9 @@ const donationCategories = {
 };
 
 const Home = () => {
+
+  const { isAuthenticated, user } = useAuth();
+
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [donationModalIsOpen, setDonationModalIsOpen] = useState(false);
   const [addItemModalIsOpen, setAddItemModalIsOpen] = useState(false);
@@ -358,7 +363,7 @@ const Home = () => {
     };
 
     if (editingAddressId) {
-      setSavedAddresses(savedAddresses.map(addr => 
+      setSavedAddresses(savedAddresses.map(addr =>
         addr.id === editingAddressId ? newAddress : addr
       ));
       toast.success("Endereço atualizado com sucesso!");
@@ -572,8 +577,8 @@ const Home = () => {
                       <div className="mt-2 space-y-2">
                         <p className="text-sm text-gray-600">Ou selecione um endereço salvo:</p>
                         {savedAddresses.map((addr) => (
-                          <div 
-                            key={addr.id} 
+                          <div
+                            key={addr.id}
                             className={`border rounded-md p-3 cursor-pointer ${address.cep === addr.cep ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
                             onClick={() => selectAddress(addr)}
                           >
@@ -589,7 +594,7 @@ const Home = () => {
                                 <p className="text-sm text-gray-600">CEP: {addr.cep}</p>
                               </div>
                               <div className="flex space-x-2">
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     editAddress(addr);
@@ -598,7 +603,7 @@ const Home = () => {
                                 >
                                   <FiEdit2 size={16} />
                                 </button>
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     deleteAddress(addr.id);
@@ -615,7 +620,7 @@ const Home = () => {
                     )}
                   </div>
 
-       
+
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Observações (Datas e horários disponíveis para coleta)*
@@ -744,11 +749,10 @@ const Home = () => {
               <button
                 onClick={handleSubmitDonation}
                 disabled={donationItems.length === 0}
-                className={`flex items-center justify-center py-2 px-4 rounded-md font-medium transition ${
-                  donationItems.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700 text-white"
-                }`}
+                className={`flex items-center justify-center py-2 px-4 rounded-md font-medium transition ${donationItems.length === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+                  }`}
               >
                 Confirmar Doação
               </button>
@@ -819,587 +823,588 @@ const Home = () => {
   };
 
   return (
-    <div className="relative w-full h-screen">
-      <MapContainer
-        center={[-23.3101, -51.1628]}
-        zoom={13}
-        className="w-full h-full"
-        zoomControl={false}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        {companies.map((company) => (
-          <Marker
-            key={company.id}
-            position={[company.lat, company.lng]}
-            icon={createCustomIcon(company.image)}
-            eventHandlers={{ click: () => openModal(company) }}
-          />
-        ))}
-      </MapContainer>
-
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Informações da Instituição"
-        className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
-        appElement={document.getElementById("root")}
-        closeTimeoutMS={200}
-      >
-        {selectedCompany && (
-          <div className="space-y-4">
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition"
-            >
-              <FiX size={24} />
-            </button>
-
-            <div className="flex items-start space-x-4">
-              <img
-                src={selectedCompany.image}
-                alt={selectedCompany.name}
-                className="w-24 h-24 object-cover rounded-md"
-              />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {selectedCompany.name}
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  {selectedCompany.description}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h3 className="font-semibold text-blue-800 flex items-center">
-                <FiGift className="mr-2" /> Itens que esta instituição aceita:
-              </h3>
-              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {selectedCompany.donationInfo.items.map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <FiCheck className="text-green-500 mt-1 mr-2 flex-shrink-0" />
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <FiClock className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-gray-700">
-                    Horário para doação
-                  </h4>
-                  <p className="text-gray-600">
-                    {selectedCompany.donationInfo.hours}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <FiMapPin className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-gray-700">Local</h4>
-                  <p className="text-gray-600">
-                    {selectedCompany.donationInfo.address}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <FiPhone className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
-                <div>
-              <h4 className="font-medium text-gray-700">Contato</h4>
-              <p className="text-gray-600">
-                {selectedCompany.contact.email}
-                <br />
-                {selectedCompany.contact.phone}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={openDonationModal}
-          className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium transition flex items-center justify-center"
-        >
-          Realizar Doação
-        </button>
-      </div>
-    )}
-  </Modal>
-
-  <Modal
-    isOpen={donationModalIsOpen}
-    onRequestClose={closeDonationModal}
-    contentLabel="Realizar Doação"
-    className="bg-white p-6 rounded-lg max-w-3xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
-    overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
-    appElement={document.getElementById("root")}
-    closeTimeoutMS={200}
-  >
-    <div className="space-y-6">
-      <div className="flex justify-between items-center border-b pb-4">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Doação para {selectedCompany?.name}
-        </h2>
-        <button
-          onClick={closeDonationModal}
-          className="text-gray-500 hover:text-gray-700 transition"
-        >
-          <FiX size={24} />
-        </button>
-      </div>
-
-
-      <div className="flex items-center justify-center mb-6">
-        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
-          <React.Fragment key={step}>
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                currentStep >= step
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200 text-gray-600"
-              } font-medium`}
-            >
-              {step}
-            </div>
-            {step < totalSteps && (
-              <div
-                className={`w-16 h-1 ${
-                  currentStep > step ? "bg-green-600" : "bg-gray-200"
-                }`}
-              ></div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {renderStep()}
-    </div>
-  </Modal>
-
-  <Modal
-    isOpen={addItemModalIsOpen}
-    onRequestClose={closeAddItemModal}
-    contentLabel="Adicionar Item"
-    className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
-    overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
-    appElement={document.getElementById("root")}
-    closeTimeoutMS={200}
-  >
-    <div className="space-y-4">
-      <div className="flex justify-between items-center border-b pb-4">
-        <h2 className="text-xl font-bold text-gray-800">Adicionar Item</h2>
-        <button
-          onClick={closeAddItemModal}
-          className="text-gray-500 hover:text-gray-700 transition"
-        >
-          <FiX size={24} />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Categoria*
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              setFormErrors({ ...formErrors, category: false });
-            }}
-            className={`w-full p-2 border ${
-              formErrors.category ? "border-red-500" : "border-gray-300"
-            } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+    <>
+      {isAuthenticated && user?.role === 'instituicao' ? (
+        <Navigate to="/instituicao" replace />
+      ) : (
+        <div className="relative w-full h-screen">
+          <MapContainer
+            center={[-23.3101, -51.1628]}
+            zoom={13}
+            className="w-full h-full"
+            zoomControl={false}
           >
-            <option value="">Selecione uma categoria</option>
-            {Object.keys(donationCategories).map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            {companies.map((company) => (
+              <Marker
+                key={company.id}
+                position={[company.lat, company.lng]}
+                icon={createCustomIcon(company.image)}
+                eventHandlers={{ click: () => openModal(company) }}
+              />
             ))}
-          </select>
-          {formErrors.category && (
-            <p className="text-red-500 text-xs mt-1">
-              Este campo é obrigatório
-            </p>
-          )}
-        </div>
+          </MapContainer>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Subcategoria*
-          </label>
-          <select
-            value={selectedSubcategory}
-            onChange={(e) => {
-              setSelectedSubcategory(e.target.value);
-              setFormErrors({ ...formErrors, subcategory: false });
-            }}
-            className={`w-full p-2 border ${
-              formErrors.subcategory ? "border-red-500" : "border-gray-300"
-            } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-            disabled={!selectedCategory}
+          <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={closeModal}
+            contentLabel="Informações da Instituição"
+            className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
+            appElement={document.getElementById("root")}
+            closeTimeoutMS={200}
           >
-            <option value="">Selecione uma subcategoria</option>
-            {selectedCategory &&
-              donationCategories[selectedCategory].subcategories.map(
-                (subcat) => (
-                  <option key={subcat} value={subcat}>
-                    {subcat}
-                  </option>
-                )
-              )}
-          </select>
-          {formErrors.subcategory && (
-            <p className="text-red-500 text-xs mt-1">
-              Este campo é obrigatório
-            </p>
-          )}
-        </div>
-      </div>
+            {selectedCompany && (
+              <div className="space-y-4">
+                <button
+                  onClick={closeModal}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition"
+                >
+                  <FiX size={24} />
+                </button>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Descrição*
-        </label>
-        <textarea
-          value={itemDescription}
-          onChange={(e) => setItemDescription(e.target.value)}
-          className={`w-full p-2 border ${
-            formErrors.itemDescription
-              ? "border-red-500"
-              : "border-gray-300"
-          } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-          rows="2"
-          placeholder="Forneça detalhes sobre o item"
-        />
-        {formErrors.itemDescription && (
-          <p className="text-red-500 text-xs mt-1">
-            Este campo é obrigatório
-          </p>
-        )}
-      </div>
+                <div className="flex items-start space-x-4">
+                  <img
+                    src={selectedCompany.image}
+                    alt={selectedCompany.name}
+                    className="w-24 h-24 object-cover rounded-md"
+                  />
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {selectedCompany.name}
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      {selectedCompany.description}
+                    </p>
+                  </div>
+                </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Quantidade*
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={itemQuantity}
-            onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
+                <div className="bg-blue-50 p-4 rounded-md">
+                  <h3 className="font-semibold text-blue-800 flex items-center">
+                    <FiGift className="mr-2" /> Itens que esta instituição aceita:
+                  </h3>
+                  <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedCompany.donationInfo.items.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <FiCheck className="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Estado do Item*
-          </label>
-          <select
-            value={itemCondition}
-            onChange={(e) => setItemCondition(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
+                <div className="space-y-3">
+                  <div className="flex items-start">
+                    <FiClock className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-700">
+                        Horário para doação
+                      </h4>
+                      <p className="text-gray-600">
+                        {selectedCompany.donationInfo.hours}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <FiMapPin className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-700">Local</h4>
+                      <p className="text-gray-600">
+                        {selectedCompany.donationInfo.address}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <FiPhone className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-700">Contato</h4>
+                      <p className="text-gray-600">
+                        {selectedCompany.contact.email}
+                        <br />
+                        {selectedCompany.contact.phone}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={openDonationModal}
+                  className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium transition flex items-center justify-center"
+                >
+                  Realizar Doação
+                </button>
+              </div>
+            )}
+          </Modal>
+
+          <Modal
+            isOpen={donationModalIsOpen}
+            onRequestClose={closeDonationModal}
+            contentLabel="Realizar Doação"
+            className="bg-white p-6 rounded-lg max-w-3xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
+            appElement={document.getElementById("root")}
+            closeTimeoutMS={200}
           >
-            <option value="novo">Novo</option>
-            <option value="usado-bom">Usado (Bom estado)</option>
-            <option value="usado-regular">Usado (Estado regular)</option>
-          </select>
-        </div>
-      </div>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b pb-4">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Doação para {selectedCompany?.name}
+                </h2>
+                <button
+                  onClick={closeDonationModal}
+                  className="text-gray-500 hover:text-gray-700 transition"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Fotos do Item* (Máximo 6)
-        </label>
 
-        <div className="flex flex-wrap gap-3 mb-4">
-          {itemImages.map((image, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={
-                  typeof image === "string"
-                    ? image
-                    : URL.createObjectURL(image)
-                }
-                alt={`Prévia ${index + 1}`}
-                className="w-20 h-20 object-cover rounded-md border border-gray-300 shadow hover:opacity-90 transition-opacity"
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Remover imagem"
-              >
-                ×
-              </button>
+              <div className="flex items-center justify-center mb-6">
+                {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+                  <React.Fragment key={step}>
+                    <div
+                      className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= step
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-200 text-gray-600"
+                        } font-medium`}
+                    >
+                      {step}
+                    </div>
+                    {step < totalSteps && (
+                      <div
+                        className={`w-16 h-1 ${currentStep > step ? "bg-green-600" : "bg-gray-200"
+                          }`}
+                      ></div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {renderStep()}
             </div>
-          ))}
+          </Modal>
 
-          {itemImages.length < 6 && (
-            <label
-              htmlFor="itemImages"
-              className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition-colors"
-            >
-              <svg
-                className="w-6 h-6 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          <Modal
+            isOpen={addItemModalIsOpen}
+            onRequestClose={closeAddItemModal}
+            contentLabel="Adicionar Item"
+            className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
+            appElement={document.getElementById("root")}
+            closeTimeoutMS={200}
+          >
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b pb-4">
+                <h2 className="text-xl font-bold text-gray-800">Adicionar Item</h2>
+                <button
+                  onClick={closeAddItemModal}
+                  className="text-gray-500 hover:text-gray-700 transition"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Categoria*
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      setFormErrors({ ...formErrors, category: false });
+                    }}
+                    className={`w-full p-2 border ${formErrors.category ? "border-red-500" : "border-gray-300"
+                      } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {Object.keys(donationCategories).map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.category && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Este campo é obrigatório
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subcategoria*
+                  </label>
+                  <select
+                    value={selectedSubcategory}
+                    onChange={(e) => {
+                      setSelectedSubcategory(e.target.value);
+                      setFormErrors({ ...formErrors, subcategory: false });
+                    }}
+                    className={`w-full p-2 border ${formErrors.subcategory ? "border-red-500" : "border-gray-300"
+                      } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    disabled={!selectedCategory}
+                  >
+                    <option value="">Selecione uma subcategoria</option>
+                    {selectedCategory &&
+                      donationCategories[selectedCategory].subcategories.map(
+                        (subcat) => (
+                          <option key={subcat} value={subcat}>
+                            {subcat}
+                          </option>
+                        )
+                      )}
+                  </select>
+                  {formErrors.subcategory && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Este campo é obrigatório
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição*
+                </label>
+                <textarea
+                  value={itemDescription}
+                  onChange={(e) => setItemDescription(e.target.value)}
+                  className={`w-full p-2 border ${formErrors.itemDescription
+                    ? "border-red-500"
+                    : "border-gray-300"
+                    } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  rows="2"
+                  placeholder="Forneça detalhes sobre o item"
                 />
-              </svg>
-              <span className="text-xs text-gray-500 mt-1">
-                {itemImages.length}/6
-              </span>
-            </label>
-          )}
-        </div>
+                {formErrors.itemDescription && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Este campo é obrigatório
+                  </p>
+                )}
+              </div>
 
-        <input
-          id="itemImages"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageUpload}
-          className="hidden"
-          disabled={itemImages.length >= 6}
-        />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantidade*
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={itemQuantity}
+                    onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
 
-        <p className="text-xs text-gray-500 mt-1">
-          Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB por imagem.
-          {itemImages.length > 0 &&
-            ` (${itemImages.length} imagem(ns) adicionada(s)`}
-        </p>
-        {formErrors.itemImages && (
-          <p className="text-red-500 text-xs mt-1">
-            Adicione pelo menos uma foto
-          </p>
-        )}
-      </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Estado do Item*
+                  </label>
+                  <select
+                    value={itemCondition}
+                    onChange={(e) => setItemCondition(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="novo">Novo</option>
+                    <option value="usado-bom">Usado (Bom estado)</option>
+                    <option value="usado-regular">Usado (Estado regular)</option>
+                  </select>
+                </div>
+              </div>
 
-      <div className="flex justify-end space-x-4 pt-4 border-t">
-        <button
-          onClick={closeAddItemModal}
-          className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleAddItem}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition"
-        >
-          Adicionar Item
-        </button>
-      </div>
-    </div>
-  </Modal>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fotos do Item* (Máximo 6)
+                </label>
 
-  <Modal
-    isOpen={addressModalIsOpen}
-    onRequestClose={closeAddressModal}
-    contentLabel="Gerenciar Endereços"
-    className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
-    overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
-    appElement={document.getElementById("root")}
-    closeTimeoutMS={200}
-  >
-    <div className="space-y-4">
-      <div className="flex justify-between items-center border-b pb-4">
-        <h2 className="text-xl font-bold text-gray-800">
-          {editingAddressId ? "Editar Endereço" : "Adicionar Endereço"}
-        </h2>
-        <button
-          onClick={closeAddressModal}
-          className="text-gray-500 hover:text-gray-700 transition"
-        >
-          <FiX size={24} />
-        </button>
-      </div>
+                <div className="flex flex-wrap gap-3 mb-4">
+                  {itemImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={
+                          typeof image === "string"
+                            ? image
+                            : URL.createObjectURL(image)
+                        }
+                        alt={`Prévia ${index + 1}`}
+                        className="w-20 h-20 object-cover rounded-md border border-gray-300 shadow hover:opacity-90 transition-opacity"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Remover imagem"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Nome do Endereço*
-        </label>
-        <input
-          type="text"
-          value={addressName}
-          onChange={(e) => setAddressName(e.target.value)}
-          placeholder="Ex: Casa, Trabalho, etc."
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          required
-        />
-      </div>
+                  {itemImages.length < 6 && (
+                    <label
+                      htmlFor="itemImages"
+                      className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition-colors"
+                    >
+                      <svg
+                        className="w-6 h-6 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                      <span className="text-xs text-gray-500 mt-1">
+                        {itemImages.length}/6
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            CEP*
-          </label>
-          <input
-            type="text"
-            value={address.cep}
-            onChange={(e) => {
-              const value = e.target.value;
-              setAddress({ ...address, cep: value });
-              if (value.replace(/\D/g, "").length === 8) {
-                fetchCEP(value);
-              }
-            }}
-            placeholder="00000-000"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                <input
+                  id="itemImages"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={itemImages.length >= 6}
+                />
+
+                <p className="text-xs text-gray-500 mt-1">
+                  Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB por imagem.
+                  {itemImages.length > 0 &&
+                    ` (${itemImages.length} imagem(ns) adicionada(s)`}
+                </p>
+                {formErrors.itemImages && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Adicione pelo menos uma foto
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4 border-t">
+                <button
+                  onClick={closeAddItemModal}
+                  className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAddItem}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition"
+                >
+                  Adicionar Item
+                </button>
+              </div>
+            </div>
+          </Modal>
+
+          <Modal
+            isOpen={addressModalIsOpen}
+            onRequestClose={closeAddressModal}
+            contentLabel="Gerenciar Endereços"
+            className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
+            appElement={document.getElementById("root")}
+            closeTimeoutMS={200}
+          >
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b pb-4">
+                <h2 className="text-xl font-bold text-gray-800">
+                  {editingAddressId ? "Editar Endereço" : "Adicionar Endereço"}
+                </h2>
+                <button
+                  onClick={closeAddressModal}
+                  className="text-gray-500 hover:text-gray-700 transition"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nome do Endereço*
+                </label>
+                <input
+                  type="text"
+                  value={addressName}
+                  onChange={(e) => setAddressName(e.target.value)}
+                  placeholder="Ex: Casa, Trabalho, etc."
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    CEP*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.cep}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setAddress({ ...address, cep: value });
+                      if (value.replace(/\D/g, "").length === 8) {
+                        fetchCEP(value);
+                      }
+                    }}
+                    placeholder="00000-000"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                  {loadingCEP && (
+                    <p className="text-xs text-gray-500">Buscando CEP...</p>
+                  )}
+                  {addressError && (
+                    <p className="text-xs text-red-500">{addressError}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Logradouro*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.logradouro}
+                    onChange={(e) =>
+                      setAddress({ ...address, logradouro: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Número*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.numero}
+                    onChange={(e) =>
+                      setAddress({ ...address, numero: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Complemento
+                  </label>
+                  <input
+                    type="text"
+                    value={address.complemento}
+                    onChange={(e) =>
+                      setAddress({ ...address, complemento: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bairro*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.bairro}
+                    onChange={(e) =>
+                      setAddress({ ...address, bairro: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cidade*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.localidade}
+                    onChange={(e) =>
+                      setAddress({ ...address, localidade: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Estado*
+                  </label>
+                  <input
+                    type="text"
+                    value={address.uf}
+                    onChange={(e) =>
+                      setAddress({ ...address, uf: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4 border-t">
+                <button
+                  onClick={closeAddressModal}
+                  className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={saveAddress}
+                  className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition"
+                >
+                  {editingAddressId ? "Atualizar Endereço" : "Salvar Endereço"}
+                </button>
+              </div>
+            </div>
+          </Modal>
+
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
           />
-          {loadingCEP && (
-            <p className="text-xs text-gray-500">Buscando CEP...</p>
-          )}
-          {addressError && (
-            <p className="text-xs text-red-500">{addressError}</p>
-          )}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Logradouro*
-          </label>
-          <input
-            type="text"
-            value={address.logradouro}
-            onChange={(e) =>
-              setAddress({ ...address, logradouro: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Número*
-          </label>
-          <input
-            type="text"
-            value={address.numero}
-            onChange={(e) =>
-              setAddress({ ...address, numero: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Complemento
-          </label>
-          <input
-            type="text"
-            value={address.complemento}
-            onChange={(e) =>
-              setAddress({ ...address, complemento: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Bairro*
-          </label>
-          <input
-            type="text"
-            value={address.bairro}
-            onChange={(e) =>
-              setAddress({ ...address, bairro: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Cidade*
-          </label>
-          <input
-            type="text"
-            value={address.localidade}
-            onChange={(e) =>
-              setAddress({ ...address, localidade: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Estado*
-          </label>
-          <input
-            type="text"
-            value={address.uf}
-            onChange={(e) =>
-              setAddress({ ...address, uf: e.target.value })
-            }
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-4 pt-4 border-t">
-        <button
-          onClick={closeAddressModal}
-          className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={saveAddress}
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition"
-        >
-          {editingAddressId ? "Atualizar Endereço" : "Salvar Endereço"}
-        </button>
-      </div>
-    </div>
-  </Modal>
-
-  <ToastContainer
-    position="top-right"
-    autoClose={5000}
-    hideProgressBar={false}
-    newestOnTop={false}
-    closeOnClick
-    rtl={false}
-    pauseOnFocusLoss
-    draggable
-    pauseOnHover
-    theme="light"
-  />
-</div>
+      )}
+    </>
   );
 }
 

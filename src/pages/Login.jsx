@@ -5,20 +5,7 @@ import { toast } from "react-toastify";
 import useAuth from "../hooks/useAuth";
 import logo from "../media/logo.png";
 import { connect } from "../services/api";
-
-const Input = ({ label, name, value, onChange, required = true }) => (
-  <div className="w-full">
-    <label className="block text-sm font-medium text-gray-700">{label}</label>
-    <input
-      type={name === "senha" ? "password" : "text"}
-      name={name}
-      value={value}
-      onChange={onChange}
-      required={required}
-      className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500"
-    />
-  </div>
-);
+import { Input, SelectInput } from "../components/Inputs/Inputs";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,6 +13,13 @@ const Login = () => {
 
   const [modo, setModo] = useState("login"); // "login" ou "registro"
   const [tipoCadastro, setTipoCadastro] = useState("doador");
+
+  const tipoDocumentoOptions = [
+    { value: 'cpf', label: 'CPF' },
+    { value: 'rg', label: 'RG' },
+    { value: 'rne', label: 'RNE' },
+    { value: 'crnm', label: 'CRNM' },
+  ];
 
   const [form, setForm] = useState({
     nome: "",
@@ -70,7 +64,6 @@ const Login = () => {
   });
 
   const handleLogin = async () => {
-    console.log(form);
     if (!form.email || !form.senha) return toast.warn("Preencha o usuário e senha!");
 
     try {
@@ -110,7 +103,7 @@ const Login = () => {
     // const missing = requiredFields.some((f) => !form[f]);
     // if (missing) return toast.warn("Preencha todos os dados!");
 
-    const endpoint = tipoCadastro === "instituicao" ? "registrar/instituicao" : "registrar/doador";
+    const endpoint = tipoCadastro === "instituicao" ? "instituicao/registrar" : "usuario/registrar";
 
     const newData = tipoCadastro === "instituicao" ? {
       usuario: {
@@ -139,7 +132,7 @@ const Login = () => {
     };
 
     try {
-      const response = await fetch(`${connect}/usuario/${endpoint}`, {
+      const response = await fetch(`${connect}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newData)
@@ -147,7 +140,6 @@ const Login = () => {
 
       if (!response.ok) {
         const erro = await response.json();
-        console.log(erro);
         throw new Error(erro.message || "Erro ao registrar");
       }
 
@@ -208,21 +200,14 @@ const Login = () => {
                     <Input label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} required={false} />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <div className="w-full">
-                      <label className="block text-sm font-medium text-gray-700" htmlFor="tipo_documento">Tipo do Documento*</label>
-                      <select
-                        name="tipo_documento"
-                        value={form.tipo_documento}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded-md px-3 py-2"
-                      >
-                        <option value="">Selecione um tipo</option>
-                        <option value="cpf">CPF</option>
-                        <option value="rg">RG</option>
-                        <option value="rne">RNE</option>
-                        <option value="crnm">CRNM </option>
-                      </select>
-                    </div>
+                    <SelectInput
+                      label="Tipo do Documento"
+                      name="tipo_documento"
+                      value={form.tipo_documento}
+                      onChange={handleChange}
+                      options={tipoDocumentoOptions}
+                      required
+                    />
                     <Input label="Documento*" name="documento" value={form.documento} onChange={handleChange} />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">

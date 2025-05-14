@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 
 // Icones
 
-export function SearchInput({ onSearch, placeholder, term }) {
+export function SearchInput({ onSearch, placeholder, term = '' }) {
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(term);
 
   const handleInputChange = (e) => {
     const term = e.target.value;
@@ -13,7 +13,7 @@ export function SearchInput({ onSearch, placeholder, term }) {
   };
 
   useEffect(() => {
-    setSearchTerm(term);
+    setSearchTerm(term ?? '');
   }, [term]);
 
   return (

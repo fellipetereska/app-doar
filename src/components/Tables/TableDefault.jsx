@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 
+// Componentes
+import { LoadingSpin } from '../Loading';
+
 // Icons
 import { IoIosOpen } from "react-icons/io";
 import { IoMdTrash } from "react-icons/io";
 
-function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8 }) {
+function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoading }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcular dados paginados
@@ -35,42 +38,55 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8 }) {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            {currentData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + ((onEdit || onDelete) ? 1 : 0)} className="px-6 py-4 text-center text-gray-400">
-                  Nenhum item encontrado.
-                </td>
-              </tr>
-            ) : (
-              currentData.map((row, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  {columns.map((col, i) => (
-                    <td key={i} className="px-6 py-4">
-                      {row[col.accessor] || '-'}
-                    </td>
-                  ))}
-                  {(onEdit || onDelete) && (
-                    <td className="px-6 py-4 flex justify-center items-center gap-2 text-base">
-                      {onEdit && (
-                        <button
-                          onClick={() => onEdit(row)}
-                          className="text-blue-500 hover:text-blue-800 cursor-pointer"
-                        >
-                          <IoIosOpen />
-                        </button>
-                      )}
-                      {onDelete && (
-                        <button
-                          onClick={() => onDelete(row)}
-                          className="text-red-500 hover:text-red-700 cursor-pointer"
-                        >
-                          <IoMdTrash />
-                        </button>
-                      )}
-                    </td>
-                  )}
+            {isLoading ? (
+              <>
+                <tr>
+                  <td colSpan={columns.length + ((onEdit || onDelete) ? 1 : 0)} className="px-6 py-4 text-center text-gray-400">
+                    <LoadingSpin />
+                  </td>
                 </tr>
-              ))
+              </>
+            ) : (
+              <>
+
+                {currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + ((onEdit || onDelete) ? 1 : 0)} className="px-6 py-4 text-center text-gray-400">
+                      Nenhum item encontrado.
+                    </td>
+                  </tr>
+                ) : (
+                  currentData.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50">
+                      {columns.map((col, i) => (
+                        <td key={i} className="px-6 py-4">
+                          {row[col.accessor] || '-'}
+                        </td>
+                      ))}
+                      {(onEdit || onDelete) && (
+                        <td className="px-6 py-4 flex justify-center items-center gap-2 text-base">
+                          {onEdit && (
+                            <button
+                              onClick={() => onEdit(row)}
+                              className="text-blue-500 hover:text-blue-800 cursor-pointer"
+                            >
+                              <IoIosOpen />
+                            </button>
+                          )}
+                          {onDelete && (
+                            <button
+                              onClick={() => onDelete(row)}
+                              className="text-red-500 hover:text-red-700 cursor-pointer"
+                            >
+                              <IoMdTrash />
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </>
             )}
           </tbody>
 

@@ -6,12 +6,17 @@ import PrivateRoute from './components/PrivateRoute';
 
 // Páginas
 const Login = lazy(() => import('./pages/Login'));
+
+// Páginas Doador
 const HomeDoador = lazy(() => import('./pages/HomeDoador'));
+
+// Páginas Instituição
 const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao'));
 const Estoque = lazy(() => import('./pages/Estoque'));
 const Assistidos = lazy(() => import('./pages/Assistidos'));
 const ListaEspera = lazy(() => import('./pages/ListaEspera'));
 const TelaDoacao = lazy(() => import('./pages/TelaDoacao'));
+const ConfiguracoesInstituicao = lazy(() => import('./pages/ConfiguracoesInstituicao'));
 
 function AppRoutes() {
   return (
@@ -30,6 +35,7 @@ function AppRoutes() {
               <Route path="/instituicao/doar" element={<PrivateRoute requiredPermission={"instituicao"}><TelaDoacao /></PrivateRoute>} />
               <Route path="/instituicao/assistidos" element={<PrivateRoute requiredPermission={"instituicao"}><Assistidos /></PrivateRoute>} />
               <Route path="/instituicao/lista-espera" element={<PrivateRoute requiredPermission={"instituicao"}><ListaEspera /></PrivateRoute>} />
+              <Route path="/instituicao/configuracoes" element={<PrivateRoute requiredPermission={"instituicao"}><ConfiguracoesInstituicao /></PrivateRoute>} />
             </Routes>
           </div>
         </Suspense>

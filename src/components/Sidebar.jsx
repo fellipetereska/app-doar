@@ -86,7 +86,9 @@ export default function Sidebar() {
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                   <ToolTip text="Configurações" position="top">
-                    <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <button type="button" onClick={() => navigate("/instituicao/configuracoes")}>
+                      <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    </button>
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
                     <button type="button" onClick={logout}>
@@ -100,8 +102,10 @@ export default function Sidebar() {
                 <div
                   className={`flex ${expanded ? "justify-between px-1" : "justify-center"} items-center gap-4`}
                 >
-                  <ToolTip text="Configurações" position="right">
-                    <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                  <ToolTip text="Configurações" position="top">
+                    <button type="button" onClick={() => navigate("/instituicao/configuracoes")}>
+                      <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    </button>
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
                     <button type="button" onClick={logout}>
