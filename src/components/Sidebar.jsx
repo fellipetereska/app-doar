@@ -23,7 +23,7 @@ const SidebarContext = createContext();
 
 export default function Sidebar() {
 
-  const { signout } = useAuth();
+  const { user, signout } = useAuth();
 
   const navigate = useNavigate();
 
@@ -81,8 +81,8 @@ export default function Sidebar() {
             {expanded ? (
               <>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">Fellipe Tereska</p>
-                  <p className="text-xs text-gray-500">fellipetereska@gmail.com</p>
+                  <p className="text-sm font-semibold text-gray-800">{user.nome}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                   <ToolTip text="Configurações" position="top">

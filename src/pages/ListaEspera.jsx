@@ -4,6 +4,7 @@ import { SearchInput } from '../components/Inputs/searchInput';
 import Modal from '../components/Modals/Modal';
 import FormListaEspera from '../components/Forms/FormListaEspera';
 import { connect } from '../services/api';
+import { formatarDocumento, formatarEndereco, formatarTelefone, getInstituicaoId } from '../components/Auxiliares/helper';
 
 const ListaEspera = () => {
   const columns = [
@@ -13,16 +14,34 @@ const ListaEspera = () => {
     { header: 'Telefone', accessor: 'telefone' },
   ];
 
+  const [instituicaoId, setInstituicaoId] = useState(getInstituicaoId());
   const [assistidos, setAssistidos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [onEdit, setOnEdit] = useState(null);
+  const [loading, setLoading] = useState(false);
+
 
   const fetchAssistidos = async () => {
     try {
-      const response = await fetch(`${connect}/assistido`);
+      setLoading(true);
+      const queryParams = new URLSearchParams({ instituicaId: instituicaoId }).toString();
+      const response = await fetch(`${connect}/assistido?${queryParams}`);
       const data = await response.json();
-      const listaEspera = data.filter(a => a.status_lista_espera === 1);
+
+      // Formatando endereço
+      const dadosFormatados = data.map((item) => ({
+        ...item,
+        documento: formatarDocumento(item),
+        telefone: formatarTelefone(item),
+        endereco: formatarEndereco(item),
+      }));
+
+      const listaEspera = dadosFormatados.filter((assistido) => assistido.status_lista_espera === 1);
+
       setAssistidos(listaEspera);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error('Erro ao buscar assistidos:', error);
     }
   };
@@ -30,6 +49,18 @@ const ListaEspera = () => {
   useEffect(() => {
     fetchAssistidos();
   }, []);
+
+  const handleEdit = (item) => {
+    if (!item) return;
+
+    setIsModalOpen(true);
+    setOnEdit(item);
+  };
+
+  const handleClear = () => {
+    setOnEdit(null);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col px-10 py-4">
@@ -55,15 +86,17 @@ const ListaEspera = () => {
       <TableDefault
         columns={columns}
         data={assistidos}
-        onEdit={(item) => console.log('Editar:', item)}
-        onDelete={(item) => console.log('Excluir:', item)}
+        onEdit={(item) => handleEdit(item)}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar à Lista de Espera">
-        <FormListaEspera onSuccess={() => {
-          setIsModalOpen(false);
-          fetchAssistidos();
-        }} />
+        <FormListaEspera
+          onEdit={onEdit}
+          onSuccess={() => {
+            handleClear();
+            setIsModalOpen(false);
+            fetchAssistidos();
+          }} />
       </Modal>
     </div>
   );

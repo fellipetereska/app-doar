@@ -107,9 +107,11 @@ const Login = () => {
 
     const newData = tipoCadastro === "instituicao" ? {
       usuario: {
+        nome: form.nome_usuario,
         email: form.email,
         senha: form.senha,
         tipo_documento: form.tipo_documento,
+        tipo: "administrador",
         documento: form.documento
       },
       instituicao: {
