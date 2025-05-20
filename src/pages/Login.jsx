@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import useAuth from "../hooks/useAuth";
@@ -9,16 +9,18 @@ import { Input, SelectInput } from "../components/Inputs/Inputs";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { setIsAuthenticated, setUser } = useAuth();
 
   const [modo, setModo] = useState("login"); // "login" ou "registro"
   const [tipoCadastro, setTipoCadastro] = useState("doador");
 
   const tipoDocumentoOptions = [
-    { value: 'cpf', label: 'CPF' },
-    { value: 'rg', label: 'RG' },
-    { value: 'rne', label: 'RNE' },
-    { value: 'crnm', label: 'CRNM' },
+    { value: "cpf", label: "CPF" },
+    { value: "rg", label: "RG" },
+    { value: "rne", label: "RNE" },
+    { value: "crnm", label: "CRNM" },
   ];
 
   const [form, setForm] = useState({
@@ -37,40 +39,42 @@ const Login = () => {
     bairro: "",
     cidade: "",
     uf: "",
-    descricao: ""
+    descricao: "",
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleClear = () => setForm({
-    email: form.email,
-    senha: form.senha,
-    nome: "",
-    nome_usuario: "",
-    telefone: "",
-    tipo_documento: "",
-    documento: "",
-    cnpj: "",
-    cep: "",
-    logradouro: "",
-    endereco: "",
-    numero: "",
-    bairro: "",
-    cidade: "",
-    uf: "",
-    descricao: ""
-  });
+  const handleClear = () =>
+    setForm({
+      email: form.email,
+      senha: form.senha,
+      nome: "",
+      nome_usuario: "",
+      telefone: "",
+      tipo_documento: "",
+      documento: "",
+      cnpj: "",
+      cep: "",
+      logradouro: "",
+      endereco: "",
+      numero: "",
+      bairro: "",
+      cidade: "",
+      uf: "",
+      descricao: "",
+    });
 
   const handleLogin = async () => {
-    if (!form.email || !form.senha) return toast.warn("Preencha o usuário e senha!");
+    if (!form.email || !form.senha)
+      return toast.warn("Preencha o usuário e senha!");
 
     try {
       const response = await fetch(`${connect}/usuario/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, senha: form.senha })
+        body: JSON.stringify({ email: form.email, senha: form.senha }),
       });
 
       const data = await response.json();
@@ -79,15 +83,22 @@ const Login = () => {
         throw new Error(data.message || "Erro ao fazer login");
       }
 
-      const destino = data.usuario.role === "instituicao" ? "/instituicao" : "/";
+      const destino =
+        data.usuario.role === "instituicao" ? "/instituicao" : "/";
       navigate(destino);
+
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, {
+        state: {
+          restoreState: location.state?.restoreState || null,
+        },
+      });
 
       const dados = {
         ...data.usuario,
         token: data.token,
-        instituicao: data.instituicao ? { ...data.instituicao } : null
+        instituicao: data.instituicao ? { ...data.instituicao } : null,
       };
-
 
       localStorage.setItem("user", JSON.stringify(dados));
       setUser(dados);
@@ -103,41 +114,47 @@ const Login = () => {
     // const missing = requiredFields.some((f) => !form[f]);
     // if (missing) return toast.warn("Preencha todos os dados!");
 
-    const endpoint = tipoCadastro === "instituicao" ? "instituicao/registrar" : "usuario/registrar";
+    const endpoint =
+      tipoCadastro === "instituicao"
+        ? "instituicao/registrar"
+        : "usuario/registrar";
 
-    const newData = tipoCadastro === "instituicao" ? {
-      usuario: {
-        nome: form.nome_usuario,
-        email: form.email,
-        senha: form.senha,
-        tipo_documento: form.tipo_documento,
-        tipo: "administrador",
-        documento: form.documento
-      },
-      instituicao: {
-        nome: form.nome,
-        cnpj: form.documento,
-        telefone: form.telefone,
-        cep: form.cep,
-        logradouro: form.logradouro,
-        endereco: form.endereco,
-        numero: form.numero,
-        complemento: form.complemento,
-        bairro: form.bairro,
-        cidade: form.cidade,
-        uf: form.uf,
-        descricao: form.descricao
-      }
-    } : {
-      ...form,
-      role: tipoCadastro
-    };
+    const newData =
+      tipoCadastro === "instituicao"
+        ? {
+            usuario: {
+              nome: form.nome_usuario,
+              email: form.email,
+              senha: form.senha,
+              tipo_documento: form.tipo_documento,
+              tipo: "administrador",
+              documento: form.documento,
+            },
+            instituicao: {
+              nome: form.nome,
+              cnpj: form.documento,
+              telefone: form.telefone,
+              cep: form.cep,
+              logradouro: form.logradouro,
+              endereco: form.endereco,
+              numero: form.numero,
+              complemento: form.complemento,
+              bairro: form.bairro,
+              cidade: form.cidade,
+              uf: form.uf,
+              descricao: form.descricao,
+            },
+          }
+        : {
+            ...form,
+            role: tipoCadastro,
+          };
 
     try {
       const response = await fetch(`${connect}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newData)
+        body: JSON.stringify(newData),
       });
 
       if (!response.ok) {
@@ -178,14 +195,22 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setTipoCadastro("doador")}
-                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "doador" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600"}`}
+                className={`pb-2 font-semibold border-b-2 ${
+                  tipoCadastro === "doador"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600"
+                }`}
               >
                 Sou Doador
               </button>
               <button
                 type="button"
                 onClick={() => setTipoCadastro("instituicao")}
-                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "instituicao" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600"}`}
+                className={`pb-2 font-semibold border-b-2 ${
+                  tipoCadastro === "instituicao"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600"
+                }`}
               >
                 Sou Instituição
               </button>
@@ -198,8 +223,19 @@ const Login = () => {
               {tipoCadastro === "doador" && (
                 <>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Nome*" name="nome" value={form.nome} onChange={handleChange} />
-                    <Input label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} required={false} />
+                    <Input
+                      label="Nome*"
+                      name="nome"
+                      value={form.nome}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="Telefone"
+                      name="telefone"
+                      value={form.telefone}
+                      onChange={handleChange}
+                      required={false}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
                     <SelectInput
@@ -210,23 +246,69 @@ const Login = () => {
                       options={tipoDocumentoOptions}
                       required
                     />
-                    <Input label="Documento*" name="documento" value={form.documento} onChange={handleChange} />
+                    <Input
+                      label="Documento*"
+                      name="documento"
+                      value={form.documento}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="CEP*" name="cep" value={form.cep} onChange={handleChange} />
-                    <Input label="Logradouro*" name="logradouro" value={form.logradouro} onChange={handleChange} />
+                    <Input
+                      label="CEP*"
+                      name="cep"
+                      value={form.cep}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="Logradouro*"
+                      name="logradouro"
+                      value={form.logradouro}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Endereço*" name="endereco" value={form.endereco} onChange={handleChange} />
-                    <Input label="Numero*" name="numero" value={form.numero} onChange={handleChange} />
+                    <Input
+                      label="Endereço*"
+                      name="endereco"
+                      value={form.endereco}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="Numero*"
+                      name="numero"
+                      value={form.numero}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Complemento" name="complemento" value={form.complemento} onChange={handleChange} required={false} />
-                    <Input label="Bairro*" name="bairro" value={form.bairro} onChange={handleChange} />
+                    <Input
+                      label="Complemento"
+                      name="complemento"
+                      value={form.complemento}
+                      onChange={handleChange}
+                      required={false}
+                    />
+                    <Input
+                      label="Bairro*"
+                      name="bairro"
+                      value={form.bairro}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Cidade*" name="cidade" value={form.cidade} onChange={handleChange} />
-                    <Input label="UF*" name="uf" value={form.uf} onChange={handleChange} />
+                    <Input
+                      label="Cidade*"
+                      name="cidade"
+                      value={form.cidade}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="UF*"
+                      name="uf"
+                      value={form.uf}
+                      onChange={handleChange}
+                    />
                   </div>
                 </>
               )}
@@ -234,30 +316,89 @@ const Login = () => {
               {tipoCadastro === "instituicao" && (
                 <>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Nome da Instituição" name="nome" value={form.nome} onChange={handleChange} />
-                    <Input label="CNPJ*" name="cnpj" value={form.cnpj} onChange={handleChange} />
+                    <Input
+                      label="Nome da Instituição"
+                      name="nome"
+                      value={form.nome}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="CNPJ*"
+                      name="cnpj"
+                      value={form.cnpj}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="CEP*" name="cep" value={form.cep} onChange={handleChange} />
-                    <Input label="Logradouro*" name="logradouro" value={form.logradouro} onChange={handleChange} />
+                    <Input
+                      label="CEP*"
+                      name="cep"
+                      value={form.cep}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="Logradouro*"
+                      name="logradouro"
+                      value={form.logradouro}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Endereço*" name="endereco" value={form.endereco} onChange={handleChange} />
-                    <Input label="Numero*" name="numero" value={form.numero} onChange={handleChange} />
+                    <Input
+                      label="Endereço*"
+                      name="endereco"
+                      value={form.endereco}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="Numero*"
+                      name="numero"
+                      value={form.numero}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Complemento" name="complemento" value={form.complemento} onChange={handleChange} required={false} />
-                    <Input label="Bairro*" name="bairro" value={form.bairro} onChange={handleChange} />
+                    <Input
+                      label="Complemento"
+                      name="complemento"
+                      value={form.complemento}
+                      onChange={handleChange}
+                      required={false}
+                    />
+                    <Input
+                      label="Bairro*"
+                      name="bairro"
+                      value={form.bairro}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Cidade*" name="cidade" value={form.cidade} onChange={handleChange} />
-                    <Input label="UF*" name="uf" value={form.uf} onChange={handleChange} />
+                    <Input
+                      label="Cidade*"
+                      name="cidade"
+                      value={form.cidade}
+                      onChange={handleChange}
+                    />
+                    <Input
+                      label="UF*"
+                      name="uf"
+                      value={form.uf}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} />
+                    <Input
+                      label="Telefone"
+                      name="telefone"
+                      value={form.telefone}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full">
-                    <label htmlFor="descricao" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="descricao"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Descrição
                     </label>
                     <textarea
@@ -273,11 +414,21 @@ const Login = () => {
 
                   <h1 className="text-sky-700 font-bold text-lg">Usuário</h1>
                   <div className="w-full flex itens-center justify-between gap-4">
-                    <Input label="Nome*" name="nome_usuario" value={form.nome_usuario} onChange={handleChange} />
+                    <Input
+                      label="Nome*"
+                      name="nome_usuario"
+                      value={form.nome_usuario}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="w-full flex itens-center justify-between gap-4">
                     <div className="w-full">
-                      <label className="block text-sm font-medium text-gray-700" htmlFor="tipo_documento">Tipo do Documento*</label>
+                      <label
+                        className="block text-sm font-medium text-gray-700"
+                        htmlFor="tipo_documento"
+                      >
+                        Tipo do Documento*
+                      </label>
                       <select
                         name="tipo_documento"
                         value={form.tipo_documento}
@@ -291,15 +442,30 @@ const Login = () => {
                         <option value="crnm">CRNM </option>
                       </select>
                     </div>
-                    <Input label="Documento*" name="documento" value={form.documento} onChange={handleChange} />
+                    <Input
+                      label="Documento*"
+                      name="documento"
+                      value={form.documento}
+                      onChange={handleChange}
+                    />
                   </div>
                 </>
               )}
             </>
           )}
 
-          <Input label="E-mail" name="email" value={form.email} onChange={handleChange} />
-          <Input label="Senha" name="senha" value={form.senha} onChange={handleChange} />
+          <Input
+            label="E-mail"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+          />
+          <Input
+            label="Senha"
+            name="senha"
+            value={form.senha}
+            onChange={handleChange}
+          />
 
           <button
             type="submit"
@@ -340,7 +506,7 @@ const Login = () => {
           )}
         </div>
       </div>
-    </main >
+    </main>
   );
 };
 
