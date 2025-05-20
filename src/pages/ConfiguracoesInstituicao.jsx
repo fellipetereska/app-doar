@@ -8,10 +8,10 @@ import { connect } from "../services/api";
 import Tooltip from "../components/Auxiliares/ToolTip";
 import useAuth from "../hooks/useAuth";
 import { FiEdit } from "react-icons/fi";
-import { Input, SelectInput } from "../components/Inputs/Inputs";
+import { Input, SelectInput, Textarea } from "../components/Inputs/Inputs";
 
 const tabs = [
-  { id: "dados", label: "Dados da Instituição" },
+  { id: "instituicao", label: "Dados da Instituição" },
   { id: "usuarios", label: "Usuários" },
   { id: "categorias", label: "Categorias" },
   { id: "configuracoes", label: "Outras Configurações" },
@@ -21,7 +21,12 @@ export default function ConfiguracoesInstituicao() {
   const { user } = useAuth();
   const [instituicaoId, setInstituicaoId] = useState(getInstituicaoId());
 
-  const [tabAtiva, setTabAtiva] = useState("dados");
+  const [tabAtiva, setTabAtiva] = useState("instituicao");
+
+  // Instituição
+  const [instituicao, setInstituicao] = useState([]);
+  const [formInstituicao, setFormInstituicao] = useState({});
+  const [isEditingInstituicao, setIsEditingInstituicao] = useState(false);
 
   // Usuários
   const [usuarios, setUsuarios] = useState([]);
@@ -68,6 +73,35 @@ export default function ConfiguracoesInstituicao() {
   const [categoriasExistentes, setCategoriasExistentes] = useState([]);
   const [modoCadastro, setModoCadastro] = useState(false);
 
+  const fetchInstituicao = async () => {
+    try {
+      const res = await fetch(`${connect}/instituicao/${instituicaoId}`);
+      const data = await res.json();
+      console.log(data);
+      setInstituicao(data);
+      setFormInstituicao({
+        id: data.id,
+        nome: data.nome,
+        email: data.email,
+        telefone: data.telefone,
+        cep: data.cep,
+        logradouro: data.logradouro,
+        endereco: data.endereco,
+        numero: data.numero,
+        complemento: data.complemento,
+        bairro: data.bairro,
+        cidade: data.cidade,
+        uf: data.uf,
+        tipo_documento: data.tipo_documento,
+        cnpj: data.cnpj,
+        descricao: data.descricao
+      });
+    } catch (err) {
+      toast.error("Erro ao carregar instituição");
+      console.error("Erro ao carregar instituição. Status: ", err);
+    }
+  };
+
   const fetchUsuarios = async () => {
     try {
       const res = await fetch(`${connect}/usuario/instituicao?instituicaoId=${instituicaoId}`);
@@ -90,6 +124,9 @@ export default function ConfiguracoesInstituicao() {
 
   useEffect(() => {
     switch (tabAtiva) {
+      case 'instituicao':
+        fetchInstituicao();
+        break;
       case 'usuarios':
         fetchUsuarios();
         break;
@@ -100,6 +137,34 @@ export default function ConfiguracoesInstituicao() {
         break;
     }
   }, [tabAtiva, user]);
+
+  // Instituição
+  const handleChangeInstituicao = (e) => {
+    setIsEditingInstituicao(true);
+    setFormInstituicao({ ...formInstituicao, [e.target.name]: e.target.value });;
+  };
+
+  const handleUpdateInstituicao = async () => {
+    try {
+      const response = await fetch(`${connect}/instituicao/${instituicaoId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formInstituicao)
+      });
+      const data = await response.json();
+      toast.success("Instituição atualizada com sucesso!");
+      setInstituicao(data);
+      setIsEditingInstituicao(false);
+      fetchInstituicao();
+    } catch (error) {
+      console.error("Erro ao atualizar instituição!", error);
+    }
+  };
+
+  const handleCancelEditingInstituicao = () => {
+    fetchInstituicao();
+    setIsEditingInstituicao(false);
+  };
 
   // Usuarios
   const editarUsuario = (usuario) => {
@@ -159,7 +224,6 @@ export default function ConfiguracoesInstituicao() {
       toast.error("Erro ao cadastrar usuário");
     }
   };
-
 
   // Categorias
   const adicionarSubcategoria = () => {
@@ -259,12 +323,43 @@ export default function ConfiguracoesInstituicao() {
 
       {/* Conteúdo da Aba */}
       <div className="mt-4">
-        {tabAtiva === "dados" && (
+        {tabAtiva === "instituicao" && (
           <div>
-            <h2 className="text-lg font-semibold mb-2">Dados da Instituição</h2>
-            <p>Formulário com nome, CNPJ, contato, etc.</p>
+            <h2 className="text-lg font-semibold mb-4">Dados da Instituição</h2>
+            <div className="grid grid-cols-4 gap-4 text-sm">
+              <div className="col-span-2">
+                <Input label="Nome da Instituição" name="nome" value={formInstituicao.nome} onChange={handleChangeInstituicao} />
+              </div>
+              <Input label="CNPJ*" name="cnpj" value={formInstituicao.cnpj} onChange={handleChangeInstituicao} />
+              <Input label="Telefone" name="telefone" value={formInstituicao.telefone} onChange={handleChangeInstituicao} />
+              <Input label="CEP*" name="cep" value={formInstituicao.cep} onChange={handleChangeInstituicao} />
+              <Input label="Logradouro*" name="logradouro" value={formInstituicao.logradouro} onChange={handleChangeInstituicao} />
+              <Input label="Endereço*" name="endereco" value={formInstituicao.endereco} onChange={handleChangeInstituicao} />
+              <Input label="Numero*" name="numero" value={formInstituicao.numero} onChange={handleChangeInstituicao} />
+              <Input label="Complemento" name="complemento" value={formInstituicao.complemento} onChange={handleChangeInstituicao} required={false} />
+              <Input label="Bairro*" name="bairro" value={formInstituicao.bairro} onChange={handleChangeInstituicao} />
+              <Input label="Cidade*" name="cidade" value={formInstituicao.cidade} onChange={handleChangeInstituicao} />
+              <Input label="UF*" name="uf" value={formInstituicao.uf} onChange={handleChangeInstituicao} />
+            </div>
+            <Textarea
+              label="Descrição"
+              name="descricao"
+              value={formInstituicao.descricao}
+              onChange={handleChangeInstituicao}
+              placeholder="Digite aqui a descrição..."
+              rows={4}
+            />
+            <div className="flex justify-end gap-2 mt-2">
+              {isEditingInstituicao && (
+                <>
+                  <button className="text-sm text-gray-500 hover:underline" onClick={handleCancelEditingInstituicao}>Cancelar</button>
+                </>
+              )}
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm" onClick={handleUpdateInstituicao}>Salvar</button>
+            </div>
           </div>
         )}
+
 
         {tabAtiva === "usuarios" && (
           <div>
@@ -292,6 +387,38 @@ export default function ConfiguracoesInstituicao() {
               </div>
             ) : (
               <>
+                {usuarioEditando && (
+                  <div className="border p-4 mt-4 bg-gray-50 rounded shadow mb-4">
+                    <h3 className="font-semibold mb-2">Editar Usuário</h3>
+                    <div className="w-full flex itens-center justify-between gap-4 mb-2">
+                      <Input label="Nome*" name="nome" value={formUsuario.nome} onChange={handleChangeUsuario} />
+                      <SelectInput
+                        label="Permissão"
+                        name="tipo"
+                        value={formUsuario.tipo}
+                        onChange={handleChangeUsuario}
+                        options={tipoUsuarioOptions}
+                        required
+                      />
+                    </div>
+                    <div className="w-full flex itens-center justify-between gap-4">
+                      <SelectInput
+                        label="Tipo do Documento"
+                        name="tipo_documento"
+                        value={formUsuario.tipo_documento}
+                        onChange={handleChangeUsuario}
+                        options={tipoDocumentoOptions}
+                        required
+                      />
+                      <Input label="Documento*" name="documento" value={formUsuario.documento} onChange={handleChangeUsuario} />
+                      <Input label="E-mail" name="email" value={formUsuario.email} onChange={handleChangeUsuario} />
+                    </div>
+                    <div className="flex justify-end mt-4 gap-2">
+                      <button onClick={() => setUsuarioEditando(null)} className="text-sm text-gray-500 hover:underline">Cancelar</button>
+                      <button onClick={salvarEdicaoUsuario} className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-md text-sm">Salvar</button>
+                    </div>
+                  </div>
+                )}
                 {usuarios.length === 0 ? (
                   <p className="text-sm text-gray-500">Nenhum usuário cadastrado.</p>
                 ) : (
@@ -312,41 +439,6 @@ export default function ConfiguracoesInstituicao() {
                             </button>
                           </div>
                         </div>
-                        {usuarioEditando && (
-                          <div className="border p-4 mt-4 bg-gray-50 rounded shadow">
-                            <h3 className="font-semibold mb-2">Editar Usuário</h3>
-                            <div className="w-full flex itens-center justify-between gap-4">
-                              <Input label="Nome*" name="nome" value={formUsuario.nome} onChange={handleChangeUsuario} />
-                              <SelectInput
-                                label="Permissão"
-                                name="tipo"
-                                value={formUsuario.tipo}
-                                onChange={handleChangeUsuario}
-                                options={tipoUsuarioOptions}
-                                required
-                              />
-                            </div>
-                            <div className="w-full flex itens-center justify-between gap-4">
-                              <SelectInput
-                                label="Tipo do Documento"
-                                name="tipo_documento"
-                                value={formUsuario.tipo_documento}
-                                onChange={handleChangeUsuario}
-                                options={tipoDocumentoOptions}
-                                required
-                              />
-                              <Input label="Documento*" name="documento" value={formUsuario.documento} onChange={handleChangeUsuario} />
-                            </div>
-                            <div className="w-full flex itens-center justify-between gap-4">
-                              <Input label="E-mail" name="email" value={formUsuario.email} onChange={handleChangeUsuario} />
-                              <Input label="Senha" name="senha" value={formUsuario.senha} onChange={handleChangeUsuario} />
-                            </div>
-                            <div className="flex justify-end mt-4 gap-2">
-                              <button onClick={() => setUsuarioEditando(null)} className="text-sm text-gray-500 hover:underline">Cancelar</button>
-                              <button onClick={salvarEdicaoUsuario} className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-md text-sm">Salvar</button>
-                            </div>
-                          </div>
-                        )}
                       </li>
                     ))}
 
