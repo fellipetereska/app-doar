@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {React, useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
@@ -22,10 +22,10 @@ function Navbar() {
   }, [isAuthenticated]);
 
   const logout = () => {
+  localStorage.clear(); 
     signout();
     navigate("/"); 
   }
-
   return (
     <>
       <nav className="fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-8 py-3 z-[1001]">
