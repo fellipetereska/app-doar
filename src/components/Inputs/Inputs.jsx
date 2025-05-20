@@ -1,13 +1,13 @@
-import React from 'react';
-export const Input = ({ label, name, value, onChange, required = true }) => (
+export const Input = ({ label, name, value, onChange, required = true, type = 'text', min = 0 }) => (
   <div className="w-full">
     <label className="block text-sm font-medium text-gray-700">{label}</label>
     <input
-      type={name === "senha" ? "password" : "text"}
+      type={name === "senha" ? "password" : type}
       name={name}
       value={value}
       onChange={onChange}
       required={required}
+      min={min}
       className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500"
     />
   </div>
@@ -21,6 +21,7 @@ export const SelectInput = ({
   options = [],
   required = true,
   placeholder = 'Selecione uma opção',
+  disable = false
 }) => {
   return (
     <div className="w-full">
@@ -38,6 +39,7 @@ export const SelectInput = ({
         value={value}
         onChange={onChange}
         required={required}
+        disabled={disable}
         className="mt-1 w-full border rounded-md px-3 py-2"
       >
         <option value="">{placeholder}</option>
@@ -78,7 +80,7 @@ export const Textarea = ({
         required={required}
         placeholder={placeholder}
         rows={rows}
-        className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500 resize-y"
+        className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500 resize-y min-h-16"
       />
     </div>
   );

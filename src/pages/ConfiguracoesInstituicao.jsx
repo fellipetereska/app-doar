@@ -97,7 +97,6 @@ export default function ConfiguracoesInstituicao() {
         descricao: data.descricao
       });
     } catch (err) {
-      toast.error("Erro ao carregar instituição");
       console.error("Erro ao carregar instituição. Status: ", err);
     }
   };
@@ -108,7 +107,7 @@ export default function ConfiguracoesInstituicao() {
       const data = await res.json();
       setUsuarios(data);
     } catch (err) {
-      toast.error("Erro ao carregar usuários");
+      console.error("Erro ao carregar usuarios. Status: ", err);
     }
   };
 
@@ -420,7 +419,7 @@ export default function ConfiguracoesInstituicao() {
                   </div>
                 )}
                 {usuarios.length === 0 ? (
-                  <p className="text-sm text-gray-500">Nenhum usuário cadastrado.</p>
+                  <p className="text-sm text-gray-500">Nenhum usuário encontrado.</p>
                 ) : (
                   <ul className="space-y-4">
                     {usuarios.length > 0 && usuarios.map((u) => (
@@ -473,7 +472,7 @@ export default function ConfiguracoesInstituicao() {
 
                 {/* Lista de categorias existentes */}
                 {categoriasExistentes.length === 0 ? (
-                  <p className="text-sm text-gray-500">Nenhuma categoria cadastrada ainda.</p>
+                  <p className="text-sm text-gray-500">Nenhuma categoria encontrada.</p>
                 ) : (
                   <ul className="grid grid-cols-1 gap-4">
                     {categoriasExistentes.map((cat, idx) => (
