@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import useAuth from "../hooks/useAuth";
 import logo from "../media/logo.png";
 import { connect } from "../services/api";
-import { Input, SelectInput } from "../components/Inputs/Inputs";
+import { Input, SelectInput, Textarea } from "../components/Inputs/Inputs";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -256,18 +256,15 @@ const Login = () => {
                   <div className="w-full flex itens-center justify-between gap-4">
                     <Input label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} />
                   </div>
-                  <div className="w-full">
-                    <label htmlFor="descricao" className="block text-sm font-medium text-gray-700">
-                      Descrição
-                    </label>
-                    <textarea
-                      name="descricao"
-                      id="descricao"
-                      rows="4"
-                      className="mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-1 min-h-20 focus:ring-sky-500 resize-y"
-                      placeholder="Digite aqui a descrição..."
-                    />
-                  </div>
+                  <Textarea
+                    label="Descrição"
+                    name="descricao"
+                    value={form.descricao}
+                    onChange={handleChange}
+                    placeholder="Digite aqui a descrição..."
+                    rows={4}
+                  />
+
 
                   <div className="border-b border-gray-300"></div>
 
