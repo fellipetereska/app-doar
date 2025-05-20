@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
-import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import placeholderImage from "../media/images.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Modal from "react-modal";
+import DonationConfirmation from "./HomeDoador/components/DonationConfirmation";
+import companies from "./HomeDoador/constants"
+import donationCategories from "./HomeDoador/categories";
 import {
   FiX,
   FiCheck,
@@ -20,6 +22,7 @@ import {
   FiPlus,
   FiEdit2,
   FiTrash2,
+  FiSearch,
 } from "react-icons/fi";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,107 +32,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-const createCustomIcon = (iconUrl) => {
+const createCustomIcon = (iconUrl, size = [30, 30]) => {
   return new L.Icon({
     iconUrl: iconUrl,
-    iconSize: [50, 50],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
+    iconSize: size,
+    iconAnchor: [size[0] / 2, size[1]],
+    popupAnchor: [0, -size[1]],
     className: "company-marker",
   });
 };
 
-const companies = [
-  {
-    id: 1,
-    name: "Empresa Solidária",
-    lat: -23.2927,
-    lng: -51.1732,
-    image: placeholderImage,
-    description:
-      "Empresa comprometida com causas sociais e ambientais, aceitando doações de alimentos, roupas e materiais escolares.",
-    donationInfo: {
-      hours: "Segunda a Sexta, das 9h às 17h",
-      address: "Rua Principal, 123 - Centro",
-      items: [
-        "Alimentos não perecíveis",
-        "Roupas em bom estado",
-        "Materiais escolares",
-        "Produtos de higiene",
-      ],
-    },
-    contact: {
-      email: "contato@empresasolidaria.com",
-      phone: "(43) 1234-5678",
-    },
-    categories: [
-      "Alimentos",
-      "Roupas e Calçados",
-      "Produtos de Higiene e Limpeza",
-    ],
-  },
-  {
-    id: 2,
-    name: "ONG Ajuda Brasil",
-    lat: -23.3027,
-    lng: -51.1832,
-    image: placeholderImage,
-    description:
-      "Organização não governamental que atende comunidades carentes com programas de educação e alimentação.",
-    donationInfo: {
-      hours: "Terça a Sábado, das 8h às 18h",
-      address: "Av. das Flores, 456 - Jardim das Nações",
-      items: [
-        "Alimentos",
-        "Livros",
-        "Brinquedos",
-        "Produtos de higiene",
-        "Material escolar",
-      ],
-    },
-    contact: {
-      email: "contato@ajudabrasil.org",
-      phone: "(43) 9876-5432",
-    },
-    categories: [
-      "Alimentos",
-      "Livros e Materiais Educacionais",
-      "Brinquedos",
-      "Produtos de Higiene e Limpeza",
-    ],
-  },
-];
+function CenterMap({ center, zoom, animate = true }) {
+  const map = useMap();
+  map.zoomControl.remove();
 
-const donationCategories = {
-  Alimentos: {
-    subcategories: ["Cestas básicas"],
-  },
-  "Roupas e Calçados": {
-    subcategories: ["Roupas Infantis", "Roupas Adultas", "Calçados"],
-  },
-  "Móveis e Eletrodomésticos": {
-    subcategories: ["Sofás", "Mesas", "Cadeiras", "Geladeiras", "Fogões"],
-  },
-  "Livros e Materiais Educacionais": {
-    subcategories: ["Livros", "Material Escolar", "Jogos Educativos"],
-  },
-  Brinquedos: {
-    subcategories: ["Bonecas", "Carrinhos", "Jogos de tabuleiro", "Pelúcias"],
-  },
-  "Produtos de Higiene e Limpeza": {
-    subcategories: [
-      "Sabonetes",
-      "Shampoos",
-      "Fraldas",
-      "Absorventes",
-      "Produtos de Limpeza",
-    ],
-  },
-};
+  useEffect(() => {
+    if (animate) {
+      map.flyTo(center, zoom, {
+        duration: 1.5,
+        easeLinearity: 0.5,
+      });
+    } else {
+      map.setView(center, zoom);
+    }
+  }, [center, zoom, map, animate]);
+
+  return null;
+}
+
 
 const Home = () => {
-
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  const [userLocation, setUserLocation] = useState(null);
+  const [showCepModal, setShowCepModal] = useState(true);
+  const [cep, setCep] = useState("");
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]);
+  const [zoomLevel, setZoomLevel] = useState(4);
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [donationModalIsOpen, setDonationModalIsOpen] = useState(false);
@@ -167,6 +108,201 @@ const Home = () => {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [addressName, setAddressName] = useState("");
   const [editingAddressId, setEditingAddressId] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+
+    const savedLocation = localStorage.getItem("userLocation");
+    if (savedLocation) {
+      const location = JSON.parse(savedLocation);
+      setUserLocation(location);
+      setMapCenter(location);
+      setZoomLevel(15);
+      setShowCepModal(false);
+    }
+
+    if (location.state?.restoreState) {
+      const { selectedCompany, userLocation, mapCenter, zoomLevel } =
+        location.state.restoreState;
+
+      if (selectedCompany) {
+        setSelectedCompany(selectedCompany);
+        setModalIsOpen(true);
+      }
+
+      if (userLocation) {
+        setUserLocation(userLocation);
+      }
+
+      if (mapCenter) {
+        setMapCenter(mapCenter);
+      }
+
+      if (zoomLevel) {
+        setZoomLevel(zoomLevel);
+      }
+    }
+
+    const saved = localStorage.getItem("savedAddresses");
+    if (saved) {
+      setSavedAddresses(JSON.parse(saved));
+    }
+  }, []);
+
+  const fetchLocationByCEP = async () => {
+    if (!cep || cep.replace(/\D/g, "").length !== 8) {
+      toast.error("Digite um CEP válido (8 dígitos)");
+      return;
+    }
+
+    setLoadingLocation(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast.error("CEP não encontrado");
+        return;
+      }
+
+      const fullAddress = `${data.logradouro}, ${data.bairro}, ${data.localidade}, ${data.uf}, Brasil`;
+
+      const geoResponse = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+          fullAddress
+        )}&key=1d529152a15843afa18decb6c408d34c`
+      );
+      const geoData = await geoResponse.json();
+
+      if (geoData.results.length === 0) {
+        toast.error("Coordenadas não encontradas para o endereço");
+        return;
+      }
+
+      const { lat, lng } = geoData.results[0].geometry;
+      const newCenter = [lat, lng];
+
+      localStorage.setItem("userLocation", JSON.stringify(newCenter));
+
+      setMapCenter(newCenter);
+      setZoomLevel(13);
+      setUserLocation(newCenter);
+      setShowCepModal(false);
+    } catch (error) {
+      toast.error("Erro ao buscar localização");
+      console.error("Erro ao buscar CEP:", error);
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
+
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocalização não suportada pelo navegador");
+      return;
+    }
+
+    setLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const location = [latitude, longitude];
+
+        localStorage.setItem("userLocation", JSON.stringify(location));
+
+        setMapCenter(location);
+        setUserLocation(location);
+        setZoomLevel(15);
+        setShowCepModal(false);
+        setLoadingLocation(false);
+      },
+      (error) => {
+        toast.error("Não foi possível obter sua localização");
+        console.error("Erro de geolocalização:", error);
+        setLoadingLocation(false);
+      }
+    );
+  };
+
+  const getIconSize = (zoom) => {
+    if (zoom <= 5) return [15, 15];
+    if (zoom <= 8) return [25, 25];
+    if (zoom <= 12) return [35, 35];
+    if (zoom <= 15) return [45, 45];
+    return [55, 55];
+  };
+  function MapEvents({ onZoom }) {
+    const map = useMap();
+
+    useEffect(() => {
+      const handleZoom = () => {
+        onZoom(map.getZoom());
+      };
+
+      map.on("zoomend", handleZoom);
+      return () => {
+        map.off("zoomend", handleZoom);
+      };
+    }, [map, onZoom]);
+
+    return null;
+  }
+
+  useEffect(() => {
+    if (location.state?.restoreState) {
+      const {
+        selectedCompany,
+        userLocation,
+        mapCenter,
+        zoomLevel,
+        shouldOpenDonationModal,
+      } = location.state.restoreState;
+
+      if (selectedCompany) {
+        setSelectedCompany(selectedCompany);
+        setModalIsOpen(true);
+
+        if (shouldOpenDonationModal) {
+          setDonationModalIsOpen(true);
+        }
+      }
+
+      if (userLocation) {
+        setUserLocation(userLocation);
+      }
+
+      if (mapCenter) {
+        setMapCenter(mapCenter);
+      }
+
+      if (zoomLevel) {
+        setZoomLevel(zoomLevel);
+      }
+    }
+  }, [location.state]);
+  const startDonationProcess = (company) => {
+    if (!isAuthenticated) {
+      toast.info("Por favor, faça login para realizar uma doação");
+      navigate("/login", {
+        state: {
+          from: window.location.pathname,
+          restoreState: {
+            selectedCompany: company,
+            userLocation,
+            mapCenter,
+            zoomLevel,
+            shouldOpenDonationModal: true,
+          },
+        },
+      });
+      return;
+    }
+
+    setSelectedCompany(company);
+    setDonationModalIsOpen(true);
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("savedAddresses");
@@ -189,8 +325,7 @@ const Home = () => {
   };
 
   const openDonationModal = () => {
-    setDonationModalIsOpen(true);
-    closeModal();
+    startDonationProcess(selectedCompany);
   };
 
   const closeDonationModal = () => {
@@ -288,15 +423,19 @@ const Home = () => {
     });
     setObservations("");
     setPhone("");
+    setShowConfirmation(false);
+    setAddItemModalIsOpen(false);
+    setAddressModalIsOpen(false);
   };
-
   const fetchCEP = async (cep) => {
     try {
       setLoadingCEP(true);
       const cleanedCEP = cep.replace(/\D/g, "");
       if (cleanedCEP.length !== 8) return;
 
-      const response = await fetch(`https://viacep.com.br/ws/${cleanedCEP}/json/`);
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cleanedCEP}/json/`
+      );
       const data = await response.json();
 
       if (data.erro) {
@@ -349,9 +488,16 @@ const Home = () => {
     setItemImages(itemImages.filter((_, i) => i !== index));
   };
 
-
   const saveAddress = () => {
-    if (!addressName || !address.cep || !address.logradouro || !address.numero || !address.bairro || !address.localidade || !address.uf) {
+    if (
+      !addressName ||
+      !address.cep ||
+      !address.logradouro ||
+      !address.numero ||
+      !address.bairro ||
+      !address.localidade ||
+      !address.uf
+    ) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
@@ -359,13 +505,15 @@ const Home = () => {
     const newAddress = {
       id: editingAddressId || Date.now(),
       name: addressName,
-      ...address
+      ...address,
     };
 
     if (editingAddressId) {
-      setSavedAddresses(savedAddresses.map(addr =>
-        addr.id === editingAddressId ? newAddress : addr
-      ));
+      setSavedAddresses(
+        savedAddresses.map((addr) =>
+          addr.id === editingAddressId ? newAddress : addr
+        )
+      );
       toast.success("Endereço atualizado com sucesso!");
     } else {
       setSavedAddresses([...savedAddresses, newAddress]);
@@ -391,7 +539,7 @@ const Home = () => {
   };
 
   const deleteAddress = (id) => {
-    setSavedAddresses(savedAddresses.filter(addr => addr.id !== id));
+    setSavedAddresses(savedAddresses.filter((addr) => addr.id !== id));
     toast.success("Endereço removido com sucesso!");
   };
 
@@ -575,23 +723,32 @@ const Home = () => {
 
                     {savedAddresses.length > 0 && (
                       <div className="mt-2 space-y-2">
-                        <p className="text-sm text-gray-600">Ou selecione um endereço salvo:</p>
+                        <p className="text-sm text-gray-600">
+                          Ou selecione um endereço salvo:
+                        </p>
                         {savedAddresses.map((addr) => (
                           <div
                             key={addr.id}
-                            className={`border rounded-md p-3 cursor-pointer ${address.cep === addr.cep ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                            className={`border rounded-md p-3 cursor-pointer ${
+                              address.cep === addr.cep
+                                ? "border-green-500 bg-green-50"
+                                : "border-gray-200"
+                            }`}
                             onClick={() => selectAddress(addr)}
                           >
                             <div className="flex justify-between items-start">
                               <div>
                                 <h5 className="font-medium">{addr.name}</h5>
                                 <p className="text-sm text-gray-600">
-                                  {addr.logradouro}, {addr.numero}{addr.complemento && `, ${addr.complemento}`}
+                                  {addr.logradouro}, {addr.numero}
+                                  {addr.complemento && `, ${addr.complemento}`}
                                 </p>
                                 <p className="text-sm text-gray-600">
                                   {addr.bairro}, {addr.localidade} - {addr.uf}
                                 </p>
-                                <p className="text-sm text-gray-600">CEP: {addr.cep}</p>
+                                <p className="text-sm text-gray-600">
+                                  CEP: {addr.cep}
+                                </p>
                               </div>
                               <div className="flex space-x-2">
                                 <button
@@ -620,7 +777,6 @@ const Home = () => {
                     )}
                   </div>
 
-
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Observações (Datas e horários disponíveis para coleta)*
@@ -638,7 +794,7 @@ const Home = () => {
               )}
             </div>
 
-            <div className="flex justify-between pt-4 border-t">
+            <div className="flex justify-between py-4 border-t">
               <button
                 onClick={prevStep}
                 className="flex items-center justify-center py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
@@ -667,7 +823,10 @@ const Home = () => {
               </h4>
               <p className="text-gray-700">
                 Você está doando{" "}
-                <span className="font-bold">{donationItems.length} itens</span>{" "}
+                <span className="font-bold">
+                  {donationItems.length}{" "}
+                  {donationItems.length === 1 ? "item" : "itens"}
+                </span>{" "}
                 para <span className="font-bold">{selectedCompany?.name}</span>.
               </p>
 
@@ -749,10 +908,11 @@ const Home = () => {
               <button
                 onClick={handleSubmitDonation}
                 disabled={donationItems.length === 0}
-                className={`flex items-center justify-center py-2 px-4 rounded-md font-medium transition ${donationItems.length === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-                  }`}
+                className={`flex items-center justify-center py-2 px-4 rounded-md font-medium transition ${
+                  donationItems.length === 0
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
               >
                 Confirmar Doação
               </button>
@@ -797,7 +957,6 @@ const Home = () => {
 
     setDonationItems([...donationItems, newItem]);
     closeAddItemModal();
-    toast.success("Item adicionado com sucesso!");
   };
 
   const removeItem = (id) => {
@@ -818,32 +977,145 @@ const Home = () => {
     };
 
     console.log("Dados da doação:", donationData);
-    alert(`Doação para ${selectedCompany.name} realizada com sucesso!`);
-    closeDonationModal();
+
+    setModalIsOpen(false); 
+    setDonationModalIsOpen(false); 
+    setAddItemModalIsOpen(false); 
+    setAddressModalIsOpen(false); 
+
+    setShowConfirmation(true);
   };
 
   return (
     <>
-      {isAuthenticated && user?.role === 'instituicao' ? (
+      {isAuthenticated && user?.role === "instituicao" ? (
         <Navigate to="/instituicao" replace />
       ) : (
         <div className="relative w-full h-screen">
-          <MapContainer
-            center={[-23.3101, -51.1628]}
-            zoom={13}
-            className="w-full h-full"
-            zoomControl={false}
+          <Modal
+            isOpen={showCepModal && !userLocation}
+            onRequestClose={() => {}}
+            contentLabel="Definir localização"
+            className="bg-white p-6 rounded-lg max-w-md w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
+            shouldCloseOnOverlayClick={false}
+            shouldCloseOnEsc={false}
           >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-800">
+                Antes de começar
+              </h2>
+              <p className="text-gray-600">
+                Para encontrar instituições próximas a você, informe seu CEP ou
+                permita que usemos sua localização atual.
+              </p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Digite seu CEP
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="text"
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
+                      placeholder="00000-000"
+                      className="flex-1 p-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={fetchLocationByCEP}
+                      disabled={loadingLocation}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-r-md flex items-center justify-center disabled:opacity-50"
+                    >
+                      {loadingLocation ? (
+                        <span className="animate-pulse">...</span>
+                      ) : (
+                        <FiSearch size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink mx-4 text-gray-500">ou</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <button
+                  onClick={getUserCurrentLocation}
+                  disabled={loadingLocation}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition flex items-center justify-center disabled:opacity-50"
+                >
+                  {loadingLocation ? (
+                    "Obtendo localização..."
+                  ) : (
+                    <>
+                      <FiMapPin className="mr-2" />
+                      Usar minha localização atual
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </Modal>
+
+          {loadingLocation && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1004]">
+              <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                <p className="text-gray-700">
+                  {cep
+                    ? "Buscando instituições na região..."
+                    : "Obtendo sua localização..."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <MapContainer
+            center={mapCenter}
+            zoom={zoomLevel}
+            className="w-full h-full"
+            zoomControl={true}
+          >
+            <MapEvents onZoom={(zoom) => setZoomLevel(zoom)} />
+
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+            <CenterMap center={mapCenter} zoom={zoomLevel} animate={true} />
+            {userLocation && (
+              <Marker
+                position={userLocation}
+                icon={L.icon({
+                  iconUrl:
+                    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41],
+                  popupAnchor: [1, -34],
+                })}
+                eventHandlers={{
+                  add: (e) => {
+                    e.target.openPopup();
+                  },
+                }}
+              >
+                <Popup>Sua localização</Popup>
+              </Marker>
+            )}
+
             {companies.map((company) => (
               <Marker
                 key={company.id}
                 position={[company.lat, company.lng]}
-                icon={createCustomIcon(company.image)}
-                eventHandlers={{ click: () => openModal(company) }}
+                icon={createCustomIcon(company.image, getIconSize(zoomLevel))}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedCompany(company);
+                    setModalIsOpen(true);
+                  },
+                }}
               />
             ))}
           </MapContainer>
@@ -884,7 +1156,8 @@ const Home = () => {
 
                 <div className="bg-blue-50 p-4 rounded-md">
                   <h3 className="font-semibold text-blue-800 flex items-center">
-                    <FiGift className="mr-2" /> Itens que esta instituição aceita:
+                    <FiGift className="mr-2" /> Itens que esta instituição
+                    aceita:
                   </h3>
                   <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedCompany.donationInfo.items.map((item, index) => (
@@ -946,7 +1219,7 @@ const Home = () => {
             isOpen={donationModalIsOpen}
             onRequestClose={closeDonationModal}
             contentLabel="Realizar Doação"
-            className="bg-white p-6 rounded-lg max-w-3xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
+            className="bg-white p-6 max-w-3xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none overflow-y-auto max-h-[700px]"
             overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
             appElement={document.getElementById("root")}
             closeTimeoutMS={200}
@@ -964,26 +1237,29 @@ const Home = () => {
                 </button>
               </div>
 
-
               <div className="flex items-center justify-center mb-6">
-                {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
-                  <React.Fragment key={step}>
-                    <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= step
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-200 text-gray-600"
-                        } font-medium`}
-                    >
-                      {step}
-                    </div>
-                    {step < totalSteps && (
+                {Array.from({ length: totalSteps }, (_, i) => i + 1).map(
+                  (step) => (
+                    <React.Fragment key={step}>
                       <div
-                        className={`w-16 h-1 ${currentStep > step ? "bg-green-600" : "bg-gray-200"
+                        className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                          currentStep >= step
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200 text-gray-600"
+                        } font-medium`}
+                      >
+                        {step}
+                      </div>
+                      {step < totalSteps && (
+                        <div
+                          className={`w-16 h-1 ${
+                            currentStep > step ? "bg-green-600" : "bg-gray-200"
                           }`}
-                      ></div>
-                    )}
-                  </React.Fragment>
-                ))}
+                        ></div>
+                      )}
+                    </React.Fragment>
+                  )
+                )}
               </div>
 
               {renderStep()}
@@ -1001,7 +1277,9 @@ const Home = () => {
           >
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b pb-4">
-                <h2 className="text-xl font-bold text-gray-800">Adicionar Item</h2>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Adicionar Item
+                </h2>
                 <button
                   onClick={closeAddItemModal}
                   className="text-gray-500 hover:text-gray-700 transition"
@@ -1021,8 +1299,9 @@ const Home = () => {
                       setSelectedCategory(e.target.value);
                       setFormErrors({ ...formErrors, category: false });
                     }}
-                    className={`w-full p-2 border ${formErrors.category ? "border-red-500" : "border-gray-300"
-                      } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    className={`w-full p-2 border ${
+                      formErrors.category ? "border-red-500" : "border-gray-300"
+                    } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                   >
                     <option value="">Selecione uma categoria</option>
                     {Object.keys(donationCategories).map((category) => (
@@ -1048,8 +1327,11 @@ const Home = () => {
                       setSelectedSubcategory(e.target.value);
                       setFormErrors({ ...formErrors, subcategory: false });
                     }}
-                    className={`w-full p-2 border ${formErrors.subcategory ? "border-red-500" : "border-gray-300"
-                      } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    className={`w-full p-2 border ${
+                      formErrors.subcategory
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                     disabled={!selectedCategory}
                   >
                     <option value="">Selecione uma subcategoria</option>
@@ -1077,10 +1359,11 @@ const Home = () => {
                 <textarea
                   value={itemDescription}
                   onChange={(e) => setItemDescription(e.target.value)}
-                  className={`w-full p-2 border ${formErrors.itemDescription
-                    ? "border-red-500"
-                    : "border-gray-300"
-                    } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  className={`w-full p-2 border ${
+                    formErrors.itemDescription
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                   rows="2"
                   placeholder="Forneça detalhes sobre o item"
                 />
@@ -1100,7 +1383,9 @@ const Home = () => {
                     type="number"
                     min="1"
                     value={itemQuantity}
-                    onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      setItemQuantity(parseInt(e.target.value) || 1)
+                    }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     required
                   />
@@ -1118,7 +1403,9 @@ const Home = () => {
                   >
                     <option value="novo">Novo</option>
                     <option value="usado-bom">Usado (Bom estado)</option>
-                    <option value="usado-regular">Usado (Estado regular)</option>
+                    <option value="usado-regular">
+                      Usado (Estado regular)
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1404,8 +1691,17 @@ const Home = () => {
           />
         </div>
       )}
+      {showConfirmation && (
+        <DonationConfirmation
+          companyName={selectedCompany?.name}
+          onClose={() => {
+            setShowConfirmation(false);
+            resetDonationFlow();
+          }}
+        />
+      )}
     </>
   );
-}
+};
 
 export default Home;

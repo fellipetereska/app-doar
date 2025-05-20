@@ -1,3 +1,4 @@
+import React from 'react';
 export const Input = ({ label, name, value, onChange, required = true }) => (
   <div className="w-full">
     <label className="block text-sm font-medium text-gray-700">{label}</label>
