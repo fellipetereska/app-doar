@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Componentes
 import TableDefault from '../components/Tables/TableDefault';
 import { SearchInput } from '../components/Inputs/searchInput';
 import Modal from '../components/Modals/Modal';
 import FormEstoque from '../components/Forms/FormEstoque';
-
+import { getInstituicaoId } from '../components/Auxiliares/helper';
+import { connect } from '../services/api';
+import { toast } from 'react-toastify';
 
 const Estoque = () => {
+  const [instituicaoId] = useState(getInstituicaoId());
+  const [estoque, setEstoque] = useState([]);
+
   const columns = [
     { header: 'ID', accessor: 'id' },
     { header: 'Categoria', accessor: 'categoria' },
@@ -16,26 +21,66 @@ const Estoque = () => {
     { header: 'Quantidade', accessor: 'quantidade' },
   ];
 
-  const [data, setData] = useState([
-  ]);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [onEdit, setOnEdit] = useState(null);
+
+  const fetchEstoque = async () => {
+    try {
+      const res = await fetch(`${connect}/estoque?instituicaoId=${instituicaoId}`);
+      const data = await res.json();
+      setEstoque(data);
+    } catch (err) {
+      console.error("Erro ao carregar o estoque.", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchEstoque();
+  }, [instituicaoId]);
 
   const handleEdit = (item) => {
-    console.log('Editar:', item);
+    setIsModalOpen(true);
+    setOnEdit(item);
   };
 
   const handleDelete = (item) => {
     console.log('Excluir:', item);
   };
 
-  const handleAddItem = (formData) => {
-    const newItem = {
-      id: data.length + 1,
-      ...formData,
-    };
-    setData((prev) => [...prev, newItem]);
+  const handleAddItem = async (formData) => {
     setIsModalOpen(false);
+    try {
+      const payload = {
+        ...formData,
+        instituicao_id: instituicaoId,
+      };
+
+      const url = onEdit
+        ? `${connect}/estoque/${onEdit.id}`
+        : `${connect}/estoque`;
+
+      const method = onEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Erro ao salvar item.");
+      }
+
+      toast.success(onEdit ? "Item atualizado!" : "Item adicionado ao estoque!");
+      setOnEdit(null);
+      fetchEstoque();
+
+    } catch (error) {
+      console.error("Erro:", error);
+      toast.error("Erro ao salvar item no estoque.");
+    }
   };
 
   return (
@@ -60,13 +105,17 @@ const Estoque = () => {
       </div>
       <TableDefault
         columns={columns}
-        data={data}
+        data={estoque}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar Item ao Estoque" paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!">
-        <FormEstoque onSubmit={handleAddItem} />
+        <FormEstoque
+          onEdit={onEdit}
+          onSubmit={handleAddItem}
+          instituicaoId={instituicaoId}
+        />
       </Modal>
     </div >
   );

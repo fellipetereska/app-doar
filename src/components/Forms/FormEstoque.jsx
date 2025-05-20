@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { connect } from '../../services/api';
 
-const FormEstoque = ({ onSubmit }) => {
+import { Input, SelectInput, Textarea } from '../Inputs/Inputs';
+import { toast } from 'react-toastify';
+
+const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
+  const [categorias, setCategorias] = useState([]);
   const [form, setForm] = useState({
-    categoria: '',
-    subcategoria: '',
+    categoria_id: '',
+    subcategoria_id: '',
     descricao: '',
     quantidade: '',
-    doador: ''
+    instituicao_id: ''
   });
+
+  const fetchCategorias = async () => {
+    const res = await fetch(`${connect}/categoria?id=${instituicaoId}`);
+    const data = await res.json();
+    setCategorias(data);
+  };
+
+  useEffect(() => {
+    fetchCategorias();
+  }, [instituicaoId]);
+
+  useEffect(() => {
+    if (onEdit) {
+      setForm(onEdit);
+    }
+  }, [onEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,81 +39,65 @@ const FormEstoque = ({ onSubmit }) => {
     e.preventDefault();
     onSubmit(form);
     setForm({
-      categoria: '',
-      subcategoria: '',
+      categoria_id: '',
+      subcategoria_id: '',
       descricao: '',
       quantidade: '',
-      doador: ''
+      instituicao_id: ''
     });
   };
 
   return (
+
     <form onSubmit={handleSubmit} className="space-y-4 h-full">
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-        <div>
-          <label className="block font-medium">Categoria</label>
-          <select
-            name="categoria"
-            type="text"
-            value={form.categoria}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="">Selecione uma categoria</option>
-            <option value="eletrodomesticos">Eletrodomésticos</option>
-          </select>
-        </div>
+        <SelectInput
+          label="Categoria"
+          name="categoria_id"
+          value={form.categoria_id}
+          onChange={handleChange}
+          required
+          disable={onEdit?.categoria_id}
+          options={categorias && categorias.map((categoria) => ({
+            value: categoria.id,
+            label: categoria.nome
+          }))}
+          placeholder="Selecione uma categoria"
+        />
 
-        <div>
-          <label className="block font-medium">SubCategoria</label>
-          <select
-            name="subcategoria"
-            type="text"
-            value={form.subcategoria}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="">Selecione uma subcategoria</option>
-            <option value="televisao">Televisão</option>
-            <option value="geladeira">Geladeira</option>
-          </select>
-        </div>
+        <SelectInput
+          label="Subcategoria"
+          name="subcategoria_id"
+          value={form.subcategoria_id}
+          onChange={handleChange}
+          disable={!form.categoria_id || onEdit?.subcategoria_id}
+          required
+          options={
+            (categorias && categorias.find(c => c.id === parseInt(form.categoria_id))?.subcategorias || []).map((s) => ({
+              value: s.id,
+              label: s.nome
+            }))
+          }
+          placeholder="Selecione uma subcategoria"
+        />
 
-        <div>
-          <label className="block font-medium">Descrição</label>
-          <input
-            name="descricao"
-            type="text"
-            value={form.descricao}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
+        <Input
+          label="Quantidade*"
+          name="quantidade"
+          type="number"
+          value={form.quantidade}
+          min={onEdit?.quantidade}
+          onChange={handleChange}
+        />
 
-        <div>
-          <label className="block font-medium">Quantidade</label>
-          <input
-            name="quantidade"
-            type="number"
-            value={form.quantidade}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Doador</label>
-          <input
-            name="doador"
-            type="text"
-            value={form.doador}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
+        <Textarea
+          label="Descrição"
+          name="descricao"
+          value={form.descricao}
+          onChange={handleChange}
+          placeholder="Digite aqui a descrição..."
+          rows={4}
+        />
       </div>
 
       <div className="flex justify-end">
@@ -104,6 +109,7 @@ const FormEstoque = ({ onSubmit }) => {
         </button>
       </div>
     </form>
+
   );
 };
 
