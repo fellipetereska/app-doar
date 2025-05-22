@@ -33,7 +33,7 @@ export default function Sidebar() {
   const menuItems = [
     { label: "Home", icon: <Home />, path: "/instituicao" },
     { label: "Estoque", icon: <Boxes />, path: "/instituicao/estoque" },
-    { label: "Doar", icon: <HeartHandshake />, path: "/instituicao/doar" },
+    { label: "Doações", icon: <HeartHandshake />, path: "/instituicao/doacoes" },
     { label: "Assistidos", icon: <Users />, path: "/instituicao/assistidos" },
     { label: "Lista de Espera", icon: <Clock />, path: "/instituicao/lista-espera" },
     { label: "Relatórios", icon: <BarChart2 />, path: "/instituicao/relatorios" },

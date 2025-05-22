@@ -43,7 +43,7 @@ export const SelectInput = ({
         className="mt-1 w-full border rounded-md px-3 py-2"
       >
         <option value="">{placeholder}</option>
-        {options.map((opt) => (
+        {options && options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

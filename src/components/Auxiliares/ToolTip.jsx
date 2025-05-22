@@ -18,9 +18,7 @@ const ToolTip = ({ children, text, position }) => {
     >
       {children}
       {show && (
-        <div
-          className={`absolute z-10 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow ${positions[position]}`}
-        >
+        <div className={`absolute z-10 px-3 py-2 text-xs text-white bg-gray-800 rounded shadow text-center whitespace-normal w-max max-w-xs ${positions[position]}`}>
           {text}
         </div>
       )}

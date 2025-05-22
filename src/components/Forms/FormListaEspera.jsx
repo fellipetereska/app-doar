@@ -58,7 +58,7 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           itens: itens.map(item => ({
-            id_item: item.id_item || 0, // se vier da view
+            id_item: item.id_item || 0,
             status: item.status || "pendente",
             quantidade_solicitada: item.quantidade_solicitada || item.quantidade,
             quantidade_atendida: item.quantidade_atendida || 0,

@@ -7,7 +7,7 @@ import { LoadingSpin } from '../Loading';
 import { IoIosOpen } from "react-icons/io";
 import { IoMdTrash } from "react-icons/io";
 
-function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoading }) {
+function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoading = false, legenda = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcular dados paginados
@@ -23,7 +23,7 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="max-h-[75vh] overflow-auto custom-scrollbar rounded-md shadow-md">
         <table className="min-w-full bg-white text-sm text-center">
           <thead className="border-b border-gray-200 text-gray-700 sticky top-0">
@@ -57,10 +57,10 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
                   </tr>
                 ) : (
                   currentData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       {columns.map((col, i) => (
-                        <td key={i} className="px-6 py-4">
-                          {row[col.accessor] || '-'}
+                        <td key={i} className="px-6 py-4 capitalize">
+                          {col.render ? col.render(row[col.accessor], row) : (row[col.accessor] ?? '-')}
                         </td>
                       ))}
                       {(onEdit || onDelete) && (
@@ -157,6 +157,17 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
           </div>
         </div>
       </div>
+      {legenda.length > 0 && (
+        <div className="w-full px-2 text-xs text-gray-700 flex flex-wrap justify-end gap-2">
+          <span className='font-medium'>Legenda:</span>
+          {legenda.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full ${item.cor}`}></span>
+              <span>{item.texto}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

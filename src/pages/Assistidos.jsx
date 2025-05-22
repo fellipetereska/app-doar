@@ -29,7 +29,7 @@ const Assistidos = () => {
   const fetchAssistidos = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams({ instituicaId: instituicaoId }).toString();
+      const queryParams = new URLSearchParams({ instituicaoId: instituicaoId }).toString();
       const response = await fetch(`${connect}/assistido?${queryParams}`);
       const data = await response.json();
 

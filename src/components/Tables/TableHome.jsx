@@ -37,7 +37,7 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 3 }) {
           {/* Corpo da tabela com dados paginados */}
           <tbody className="divide-y divide-gray-100">
             {currentData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
+              <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                 {columns.map((col, i) => (
                   <td key={i} className="px-6 py-2">
                     {row[col.accessor]}
