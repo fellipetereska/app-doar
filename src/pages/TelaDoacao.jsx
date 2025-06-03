@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { connect } from '../services/api';
-import { toast } from 'react-toastify';
 import TableDefault from '../components/Tables/TableDefault';
 import Modal from '../components/Modals/Modal';
 import NewDonation from '../components/NewDonation';
 import { formatarDocumento, formatarEndereco, formatarTelefone, getInstituicaoId, formatarDataIso } from '../components/Auxiliares/helper';
-import FiltroDoacoes from '../components/FiltroDoacoes';
 import { ListFilter, Plus } from 'lucide-react';
 import ToolTip from '../components/Auxiliares/ToolTip';
 import ModalDoacao from '../components/Modals/ModalDoacao';
+import { SelectSearch } from '../components/Inputs/Inputs';
 
 const DoacoesInstituicao = () => {
   const [instituicaoId] = useState(getInstituicaoId());
@@ -23,7 +22,7 @@ const DoacoesInstituicao = () => {
   const [loading, setLoading] = useState(false);
 
   const [filtros, setFiltros] = useState({
-    status: '',
+    status: 'pendente',
     assistidoId: '',
     data: '',
     listaAssistidos: [],
@@ -37,16 +36,17 @@ const DoacoesInstituicao = () => {
   ];
 
   const columns = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Data', accessor: 'data' },
-    { header: 'Assitido', accessor: 'nome_assistido' },
+    { header: 'ID', accessor: 'id', sortable: true },
+    { header: 'Data', accessor: 'data', sortable: true },
+    { header: 'Assitido', accessor: 'nome_assistido', sortable: true },
     { header: 'Observação', accessor: 'observacao' },
-    { header: 'Tipo', accessor: 'tipo_entrega' },
+    { header: 'Tipo', accessor: 'tipo_entrega', sortable: true },
     {
       header: 'Status',
       accessor: 'status',
+      sortable: true,
       render: (value) => (
-        <span className={`flex items-center gap-2 justify-center`}>
+        <span className="flex items-center gap-2 justify-center">
           <span className={`w-3 h-3 rounded-full ${value === 'pendente' ? 'bg-yellow-400' : value === 'finalizada' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
         </span>
       )
@@ -78,7 +78,8 @@ const DoacoesInstituicao = () => {
     try {
       const res = await fetch(`${connect}/estoque?instituicaoId=${instituicaoId}`);
       const data = await res.json();
-      setEstoque(data);
+      const filterEstoque = data.filter((item) => item.quantidade > 0);
+      setEstoque(filterEstoque);
     } catch (err) {
       console.error('Erro ao buscar doações.');
     }
@@ -89,6 +90,7 @@ const DoacoesInstituicao = () => {
       const params = {};
 
       if (filtros.status) params.status = filtros.status;
+      if (filtros.tipo_entrega) params.tipo_entrega = filtros.tipo_entrega;
       if (filtros.assistidoId) params.assistidoId = filtros.assistidoId;
       if (filtros.data) params.data = filtros.data;
 
@@ -138,7 +140,7 @@ const DoacoesInstituicao = () => {
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || 'Erro ao atualizar o status da entrega.');
       }
@@ -154,6 +156,10 @@ const DoacoesInstituicao = () => {
   }, []);
 
   const handleChangeFilter = (e) => {
+    if (!e) {
+      return;
+    }
+
     const { name, value } = e.target;
     setFiltros((prev) => ({ ...prev, [name]: value }));
   };
@@ -223,34 +229,42 @@ const DoacoesInstituicao = () => {
                   className="border rounded px-3 py-2"
                 >
                   <option value="">Todos</option>
-                  <option value="aceita">Aceitas</option>
-                  <option value="entregar">Para Entregar</option>
-                  <option value="retirar">Aguardando Retirada</option>
-                  <option value="finalizada">Finalizadas</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="finalizada">Finalizada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              {/* Tipo de Entrega */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Tipo de Entrega</label>
+                <select
+                  name="tipo_entrega"
+                  value={filtros.tipo_entrega}
+                  onChange={handleChangeFilter}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Todos</option>
+                  <option value="retirar">Retirar</option>
+                  <option value="entregar">Entregar</option>
                 </select>
               </div>
 
               {/* Assistido */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Assistido</label>
-                <select
-                  name="assistidoId"
-                  value={filtros.assistidoId}
-                  onChange={handleChangeFilter}
-                  className="border rounded px-3 py-2"
-                >
-                  <option value="">Todos</option>
-                  {filtros.listaAssistidos?.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.nome}
-                    </option>
-                  ))}
-                </select>
+                <SelectSearch
+                  data={assistidos}
+                  onSelect={handleChangeFilter}
+                  placeholder="Selecione um Assistido"
+                  label="Assistido"
+                  required
+                  name='selected_assistido'
+                />
               </div>
 
               {/* Data */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium mb-1">Data (a partir de)</label>
+                <label className="text-sm font-medium mb-1">Data</label>
                 <input
                   type="date"
                   name="data"
@@ -259,6 +273,7 @@ const DoacoesInstituicao = () => {
                   className="border rounded px-3 py-2"
                 />
               </div>
+
               {/* Botão */}
               <div className='pt-2 border-t'>
                 <button
@@ -273,6 +288,7 @@ const DoacoesInstituicao = () => {
         </div>
       </div>
 
+      {/* Modal Nova Doação */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <NewDonation
           estoque={estoque}
@@ -285,6 +301,7 @@ const DoacoesInstituicao = () => {
         />
       </Modal>
 
+      {/* Modal Visualizar/Editar Doação */}
       <ModalDoacao
         isOpen={viewDonation}
         onClose={() => {
@@ -293,7 +310,6 @@ const DoacoesInstituicao = () => {
         }}
         doacao={selectedDonation}
         onStatusChange={atualizarStatus}
-        onDeleteItem={handleRemoveItem}
       />
     </div>
   );

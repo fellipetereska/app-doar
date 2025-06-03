@@ -14,11 +14,10 @@ const Estoque = () => {
   const [estoque, setEstoque] = useState([]);
 
   const columns = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Categoria', accessor: 'categoria' },
-    { header: 'Subcategoria', accessor: 'subcategoria' },
-    { header: 'Descrição', accessor: 'descricao' },
-    { header: 'Quantidade', accessor: 'quantidade' },
+    { header: 'ID', accessor: 'id', sortable: true },
+    { header: 'Categoria', accessor: 'categoria', sortable: true },
+    { header: 'Subcategoria', accessor: 'subcategoria', sortable: true },
+    { header: 'Quantidade', accessor: 'quantidade', sortable: true },
   ];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +27,8 @@ const Estoque = () => {
     try {
       const res = await fetch(`${connect}/estoque?instituicaoId=${instituicaoId}`);
       const data = await res.json();
-      setEstoque(data);
+      const filterEstoque = data.filter((item) => item.quantidade > 0);
+      setEstoque(filterEstoque);
     } catch (err) {
       console.error("Erro ao carregar o estoque.", err);
     }
@@ -107,7 +107,6 @@ const Estoque = () => {
         columns={columns}
         data={estoque}
         onEdit={handleEdit}
-        onDelete={handleDelete}
       />
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar Item ao Estoque" paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!">

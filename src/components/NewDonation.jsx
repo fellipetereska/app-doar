@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Componentes
-import ToolTip from '../components/Auxiliares/ToolTip';
-import { formatarDocumento, formatarEndereco, formatarTelefone } from './Auxiliares/helper';
+import { formatarDocumento} from './Auxiliares/helper';
 import { Input, SelectInput, Textarea } from './Inputs/Inputs';
-import { Loading, LoadingSpin } from './Loading';
 
 // Icons
 import { CirclePlus, ClipboardCheck, Trash2 } from 'lucide-react';
@@ -15,7 +13,7 @@ import AddItensDoacao from './Inputs/AddItensDoacao';
 
 const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
   // Steps
-  const [steps, setSteps] = useState([
+  const [steps] = useState([
     { id: 1, label: 'Assistido' },
     { id: 2, label: 'Itens' },
     { id: 3, label: 'Confirmar' }
@@ -25,7 +23,6 @@ const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
   const [assistidoId, setAssistidoId] = useState('');
   const [assistido, setAssistido] = useState([]);
 
-  const [itemSelecionado, setItemSelecionado] = useState(null);
   const [itensSelecionados, setItensSelecionados] = useState([]);
   const [itensListaEspera, setItensListaEspera] = useState([]);
   const [mostrarListaEspera, setMostrarListaEspera] = useState(false);
@@ -54,8 +51,7 @@ const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
 
       setItensListaEspera(itensFiltrados);
 
-      // Vai para Lista de Espera se tiver itens, senão pula pro estoque
-      setStep(itensFiltrados.length > 0 ? 2 : 3);
+      setStep(2);
     } catch (error) {
       toast.error(error.message || "Erro ao carregar assistido.");
       console.error("Erro ao carregar step:", error);
@@ -116,7 +112,6 @@ const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
     if (!assistidoId || itensSelecionados.length === 0) {
       return toast.warn('Selecione um assistido e adicione itens.');
     }
-
 
     try {
       const itensPayload = itensSelecionados.map((item) => ({
@@ -326,7 +321,12 @@ const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-sky-600 hover:bg-sky-700'
                       }`}
-                    disabled={!selectedCategoria || !selectedSubCategoria || quantidade < 1}
+                    disabled={
+                      !selectedCategoria ||
+                      !selectedSubCategoria ||
+                      quantidade < 1 ||
+                      quantidade > getQuantidadeDisponivel(estoque, selectedCategoria, selectedSubCategoria)
+                    }
                   >
                     <CirclePlus size={22} />
                   </button>

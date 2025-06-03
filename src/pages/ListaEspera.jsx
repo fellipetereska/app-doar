@@ -8,8 +8,8 @@ import { formatarDocumento, formatarEndereco, formatarTelefone, getInstituicaoId
 
 const ListaEspera = () => {
   const columns = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Nome', accessor: 'nome' },
+    { header: 'ID', accessor: 'id', sortable: true },
+    { header: 'Nome', accessor: 'nome', sortable: true },
     { header: 'Documento', accessor: 'documento' },
     { header: 'Telefone', accessor: 'telefone' },
   ];
@@ -20,11 +20,16 @@ const ListaEspera = () => {
   const [onEdit, setOnEdit] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setOnEdit(null);
+  };
+
 
   const fetchAssistidos = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams({ instituicaId: instituicaoId }).toString();
+      const queryParams = new URLSearchParams({ instituicaoId: instituicaoId }).toString();
       const response = await fetch(`${connect}/assistido?${queryParams}`);
       const data = await response.json();
 
@@ -37,7 +42,6 @@ const ListaEspera = () => {
       }));
 
       const listaEspera = dadosFormatados.filter((assistido) => assistido.status_lista_espera === 1);
-
       setAssistidos(listaEspera);
       setLoading(false);
     } catch (error) {
@@ -87,16 +91,18 @@ const ListaEspera = () => {
         columns={columns}
         data={assistidos}
         onEdit={(item) => handleEdit(item)}
+        isLoading={loading}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar à Lista de Espera">
+      <Modal isOpen={isModalOpen} onClose={closeModal} title="Adicionar à Lista de Espera">
         <FormListaEspera
           onEdit={onEdit}
           onSuccess={() => {
             handleClear();
             setIsModalOpen(false);
             fetchAssistidos();
-          }} />
+          }}
+        />
       </Modal>
     </div>
   );

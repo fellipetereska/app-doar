@@ -3,47 +3,55 @@ import Swal from 'sweetalert2';
 
 import Modal from './Modal';
 import { toast } from 'react-toastify';
-import { Trash2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
+import { connect } from '../../services/api';
 
 
-const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange, onRemoveItem }) => {
+const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange }) => {
   const [novoStatus, setNovoStatus] = useState('');
 
   useEffect(() => {
+    console.log(doacao);
     setNovoStatus(doacao.status || '');
   }, [doacao]);
 
-  const handleSalvar = () => {
-    if (novoStatus !== doacao.status) {
+  const handleSalvar = async () => {
+    if (novoStatus === 'cancelada') {
+      try {
+        const res = await fetch(`${connect}/entregas/cancelar/${doacao.id}`, {
+          method: 'POST'
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Erro ao cancelar a doação.');
+        }
+
+        toast.success('Doação cancelada com sucesso!');
+        onStatusChange(doacao.id, 'cancelada');
+        onClose();
+      } catch (err) {
+        toast.error('Erro ao cancelar a doação.');
+        console.error(err);
+      }
+    } else if (novoStatus !== doacao.status) {
       onStatusChange(doacao.id, novoStatus);
+      onClose();
+    } else {
+      onClose();
     }
-    setNovoStatus('');
-    onClose();
   };
 
-  const handleRemoverItem = (item) => {
-    Swal.fire({
-      title: 'Remover item?',
-      html: `Tem certeza que deseja remover <strong>(x${item.quantidade}) ${item.categoria} - ${item.subcategoria}</strong> da doação?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Sim, remover',
-      cancelButtonText: 'Cancelar',
-      reverseButtons: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setNovoStatus('');
-        onRemoveItem(item.item_id);
-        Swal.fire({
-          icon: 'success',
-          title: 'Item removido!',
-          timer: 1200,
-          showConfirmButton: false
-        });
-      }
-    });
+  const gerarLinkRota = () => {
+    const destino = doacao.endereco_completo;
+
+    if (!destino || destino.trim() === '') {
+      console.error("Endereço não informado.");
+      return null;
+    }
+
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}&travelmode=driving`;
   };
 
   return (
@@ -73,8 +81,9 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange, onRemoveItem }) 
               <p className="text-xs text-gray-500">Status</p>
               <select
                 value={novoStatus}
+                disabled={doacao.status === 'cancelada'}
                 onChange={(e) => setNovoStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 bg-white text-sm text-gray-800"
+                className="w-full border border-gray-300 rounded px-3 py-1.5 bg-white text-sm text-gray-800 disabled:bg-gray-300 disabled:text-gray-500"
               >
                 <option value="pendente">Pendente</option>
                 <option value="finalizada">Finalizada</option>
@@ -83,8 +92,36 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange, onRemoveItem }) 
             </div>
 
             <div className="w-full">
-              <p className="text-xs text-gray-500">Observação</p>
-              <p className="text-sm text-gray-800">{doacao.observacao || '-'}</p>
+              <div className='flex justify-between items-center'>
+                <div className='w-1/2'>
+                  <p className="text-xs text-gray-500">Endereço</p>
+                  <p className="text-sm text-gray-800">{doacao.endereco_completo || '-'}</p>
+                </div>
+                <div className='w-1/2'>
+                  <p className="text-xs text-gray-500">Observação</p>
+                  <p className="text-sm text-gray-800">{doacao.observacao || '-'}</p>
+                </div>
+              </div>
+            </div>
+
+            {doacao.tipo_entrega === 'entregar' && doacao.cep_assistido && (
+              <div className="w-full mt-3">
+                <a
+                  href={gerarLinkRota()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded transition"
+                >
+                  <div className='flex items-center gap-1'>
+                    <MapPin size={20} />
+                    Ver rota no Google Maps
+                  </div>
+                </a>
+              </div>
+            )}
+
+            <div className='w-full'>
+              {/* Botão com o link do maps com a rota para o endereço, abrir direto no maps */}
             </div>
           </div>
         </div>
@@ -108,14 +145,6 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange, onRemoveItem }) 
                     </span>
                     <span className="text-gray-500">Quantidade: {item.quantidade}</span>
                   </div>
-
-                  <button
-                    onClick={() => handleRemoverItem(item)}
-                    className="text-red-500 hover:text-red-700 transition"
-                    title="Remover item"
-                  >
-                    <Trash2 size={18} />
-                  </button>
                 </div>
               ))}
             </div>
@@ -127,7 +156,7 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange, onRemoveItem }) 
           <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
             Fechar
           </button>
-          <button onClick={handleSalvar} className="px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800 font-medium">
+          <button onClick={handleSalvar} disabled={doacao.status === 'cancelada'} className="px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800 font-medium disabled:bg-gray-200 disabled:hover:bg-gray-200 disabled:cursor-not-allowed">
             Salvar Alterações
           </button>
         </div>

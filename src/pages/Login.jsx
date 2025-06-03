@@ -100,7 +100,19 @@ const Login = () => {
         instituicao: data.instituicao ? { ...data.instituicao } : null,
       };
 
-      localStorage.setItem("user", JSON.stringify(dados));
+      // Recupera o que já está salvo
+      const stored = localStorage.getItem("doar");
+      const parsed = stored ? JSON.parse(stored) : {};
+
+      // Atualiza apenas os dados de usuário
+      const atualizado = {
+        ...parsed,
+        usuario: dados,
+      };
+
+      // Salva de volta no localStorage
+      localStorage.setItem("doar", JSON.stringify(atualizado));
+
       setUser(dados);
       setIsAuthenticated(true);
     } catch (error) {
@@ -122,33 +134,33 @@ const Login = () => {
     const newData =
       tipoCadastro === "instituicao"
         ? {
-            usuario: {
-              nome: form.nome_usuario,
-              email: form.email,
-              senha: form.senha,
-              tipo_documento: form.tipo_documento,
-              tipo: "administrador",
-              documento: form.documento,
-            },
-            instituicao: {
-              nome: form.nome,
-              cnpj: form.documento,
-              telefone: form.telefone,
-              cep: form.cep,
-              logradouro: form.logradouro,
-              endereco: form.endereco,
-              numero: form.numero,
-              complemento: form.complemento,
-              bairro: form.bairro,
-              cidade: form.cidade,
-              uf: form.uf,
-              descricao: form.descricao,
-            },
-          }
+          usuario: {
+            nome: form.nome_usuario,
+            email: form.email,
+            senha: form.senha,
+            tipo_documento: form.tipo_documento,
+            tipo: "administrador",
+            documento: form.documento,
+          },
+          instituicao: {
+            nome: form.nome,
+            cnpj: form.documento,
+            telefone: form.telefone,
+            cep: form.cep,
+            logradouro: form.logradouro,
+            endereco: form.endereco,
+            numero: form.numero,
+            complemento: form.complemento,
+            bairro: form.bairro,
+            cidade: form.cidade,
+            uf: form.uf,
+            descricao: form.descricao,
+          },
+        }
         : {
-            ...form,
-            role: tipoCadastro,
-          };
+          ...form,
+          role: tipoCadastro,
+        };
 
     try {
       const response = await fetch(`${connect}/${endpoint}`, {
@@ -195,22 +207,20 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setTipoCadastro("doador")}
-                className={`pb-2 font-semibold border-b-2 ${
-                  tipoCadastro === "doador"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600"
-                }`}
+                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "doador"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600"
+                  }`}
               >
                 Sou Doador
               </button>
               <button
                 type="button"
                 onClick={() => setTipoCadastro("instituicao")}
-                className={`pb-2 font-semibold border-b-2 ${
-                  tipoCadastro === "instituicao"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600"
-                }`}
+                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "instituicao"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600"
+                  }`}
               >
                 Sou Instituição
               </button>

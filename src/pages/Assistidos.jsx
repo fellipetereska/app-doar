@@ -11,17 +11,60 @@ import { getInstituicaoId, formatarEndereco, formatarTelefone, formatarDocumento
 
 const Assistidos = () => {
   const columns = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Nome', accessor: 'nome' },
-    { header: 'Documento', accessor: 'documento' },
-    { header: 'Telefone', accessor: 'telefone' },
-    { header: 'Endereço', accessor: 'endereco' },
+    {
+      header: 'ID',
+      accessor: 'id',
+      sortable: true,
+      render: (_, row) => row.assistido?.id ?? '-',
+    },
+    {
+      header: 'Nome',
+      accessor: 'nome',
+      sortable: true,
+      render: (_, row) => row.assistido?.nome ?? '-',
+    },
+    {
+      header: 'Documento',
+      accessor: 'documento',
+      render: (_, row) => formatarDocumento(row.assistido),
+    },
+    {
+      header: 'Telefone',
+      accessor: 'telefone',
+      render: (_, row) => formatarTelefone(row.assistido),
+    },
+    {
+      header: 'Endereço',
+      accessor: 'endereco',
+      render: (_, row) => formatarEndereco(row.assistido),
+    },
+    {
+      header: 'Projetos',
+      accessor: 'projetos',
+      render: (_, row) =>
+        row.projetos?.length ? (
+          <div className="flex flex-wrap gap-1 justify-center">
+            {row.projetos.map((p) => (
+              <span
+                key={p.id}
+                className="inline-block bg-gray-200 text-gray-500 text-xs font-medium px-2 py-1 rounded-full"
+              >
+                {p.apelido}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-gray-400 italic text-xs">Nenhum Projeto!</span>
+        )
+
+    },
   ];
 
-  const [instituicaoId, setInstituicaoId] = useState(getInstituicaoId());
+  const [instituicaoId] = useState(getInstituicaoId());
 
   const [assistidos, setAssistidos] = useState([]);
   const [selectedAssistido, setSelectedAssistido] = useState(null);
+  const [isEdicao, setIsEdicao] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,18 +73,10 @@ const Assistidos = () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({ instituicaoId: instituicaoId }).toString();
-      const response = await fetch(`${connect}/assistido?${queryParams}`);
+      const response = await fetch(`${connect}/assistido/projetos?${queryParams}`);
       const data = await response.json();
 
-      // Formatando endereço
-      const dadosFormatados = data.map((item) => ({
-        ...item,
-        documento: formatarDocumento(item),
-        telefone: formatarTelefone(item),
-        endereco: formatarEndereco(item),
-      }));
-
-      setAssistidos(dadosFormatados);
+      setAssistidos(data);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -54,11 +89,9 @@ const Assistidos = () => {
   }, []);
 
   const handleEdit = (item) => {
-    console.log('Editar:', item);
-  };
-
-  const handleDelete = (item) => {
-    console.log('Excluir:', item);
+    setSelectedAssistido(item);
+    setIsModalOpen(true);
+    setIsEdicao(true);
   };
 
   const handleAddItem = async (formData) => {
@@ -66,11 +99,19 @@ const Assistidos = () => {
       const assistido = {
         ...formData,
         status_lista_espera: 0,
+        cep: formData.cep.replace(/\D/g, ''),
+        documento: formData.documento.replace(/\D/g, ''),
+        telefone: formData.telefone.replace(/\D/g, ''),
         instituicao_id: instituicaoId
       };
 
-      const response = await fetch(`${connect}/assistido`, {
-        method: 'POST',
+      const metodo = isEdicao ? 'PUT' : 'POST';
+      const url = isEdicao
+        ? `${connect}/assistido/${Number(selectedAssistido.assistido.id)}`
+        : `${connect}/assistido`;
+
+      const response = await fetch(url, {
+        method: metodo,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -80,16 +121,18 @@ const Assistidos = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || 'Erro ao cadastrar assistido.');
+        throw new Error(data?.message || 'Erro ao salvar assistido.');
       }
 
-      toast.success('Assistido cadastrado com sucesso!');
+      toast.success(isEdicao ? 'Assistido atualizado com sucesso!' : 'Assistido cadastrado com sucesso!');
       await fetchAssistidos();
       setIsModalOpen(false);
+      setSelectedAssistido(null);
+      setIsEdicao(false);
 
     } catch (error) {
-      console.error("Erro ao cadastrar assistido:", error);
-      toast.error(error.message || "Erro ao cadastrar assistido");
+      console.error("Erro ao salvar assistido:", error);
+      toast.error(error.message || "Erro ao salvar assistido");
     }
   };
 
@@ -114,13 +157,12 @@ const Assistidos = () => {
       <TableDefault
         columns={columns}
         data={assistidos}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={(item) => handleEdit(item)}
         isLoading={loading}
       />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Cadastrar um Assistido">
-        <FormAssistido onSubmit={handleAddItem} />
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedAssistido([]); setIsEdicao(false); }} title="Cadastrar um Assistido">
+        <FormAssistido onSubmit={handleAddItem} selectedAssistido={selectedAssistido} instituicao_id={instituicaoId} />
       </Modal>
     </div >
   );

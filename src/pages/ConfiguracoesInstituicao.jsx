@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Trash2, Edit2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, CircleX, CircleCheck } from "lucide-react";
 
 // Componentes
-import { getInstituicaoId } from '../components/Auxiliares/helper';
+import { formatarDataIso, getInstituicaoId } from '../components/Auxiliares/helper';
 import { toast } from "react-toastify";
 import { connect } from "../services/api";
 import Tooltip from "../components/Auxiliares/ToolTip";
 import useAuth from "../hooks/useAuth";
 import { FiEdit } from "react-icons/fi";
 import { Input, SelectInput, Textarea } from "../components/Inputs/Inputs";
+import Select from "react-select/base";
 
 const tabs = [
   { id: "instituicao", label: "Dados da Instituição" },
   { id: "usuarios", label: "Usuários" },
   { id: "categorias", label: "Categorias" },
+  { id: "projetos", label: "Projetos" },
   { id: "configuracoes", label: "Outras Configurações" },
 ];
 
@@ -53,7 +55,6 @@ export default function ConfiguracoesInstituicao() {
     status: 1,
     instituicao_id: getInstituicaoId()
   });
-
   const tipoDocumentoOptions = [
     { value: 'cpf', label: 'CPF' },
     { value: 'rg', label: 'RG' },
@@ -72,6 +73,20 @@ export default function ConfiguracoesInstituicao() {
   const [categoriaSelecionadaId, setCategoriaSelecionadaId] = useState(null);
   const [categoriasExistentes, setCategoriasExistentes] = useState([]);
   const [modoCadastro, setModoCadastro] = useState(false);
+
+  // Projetos
+  const [projetosExistentes, setProjetosExistentes] = useState([]);
+  const [modoCadastroProjeto, setModoCadastroProjeto] = useState(false);
+  const [formProjeto, setFormProjeto] = useState({
+    nome: '',
+    descricao: '',
+    apelido: '',
+    data_inicio: null,
+    data_fim: null,
+    status: true,
+    instituicao_id: getInstituicaoId()
+  });
+  const [editingProjeto, setEditingProjeto] = useState(null);
 
   const fetchInstituicao = async () => {
     try {
@@ -121,6 +136,16 @@ export default function ConfiguracoesInstituicao() {
     }
   };
 
+  const fetchProjetos = async () => {
+    try {
+      const response = await fetch(`${connect}/projeto?id=${instituicaoId}`);
+      const data = await response.json();
+      setProjetosExistentes(data);
+    } catch (error) {
+      console.error("Erro ao buscar projetos!", error);
+    }
+  };
+
   useEffect(() => {
     switch (tabAtiva) {
       case 'instituicao':
@@ -131,6 +156,9 @@ export default function ConfiguracoesInstituicao() {
         break;
       case "categorias":
         fetchCategorias();
+        break;
+      case "projetos":
+        fetchProjetos();
         break;
       default:
         break;
@@ -299,6 +327,74 @@ export default function ConfiguracoesInstituicao() {
     );
   };
 
+  // Projetos
+  const handleChangeProjeto = (e) => {
+    const { name, value } = e.target;
+    setFormProjeto((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const salvarProjeto = async () => {
+    try {
+      const isEditando = !!editingProjeto;
+      const metodo = isEditando ? 'PUT' : 'POST';
+      const url = isEditando
+        ? `${connect}/projeto/${editingProjeto}`
+        : `${connect}/projeto`;
+
+      console.log(metodo);
+      console.log(url);
+      console.log(formProjeto);
+
+      const response = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formProjeto)
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      toast.success(isEditando ? "Projeto atualizado com sucesso!" : "Projeto cadastrado com sucesso!");
+
+      setModoCadastroProjeto(false);
+      setFormProjeto({
+        nome: '',
+        descricao: '',
+        apelido: '',
+        data_inicio: null,
+        data_fim: null,
+        status: true,
+        instituicao_id: getInstituicaoId()
+      });
+      setEditingProjeto(null);
+      fetchProjetos();
+    } catch (error) {
+      toast.error("Erro ao salvar projeto");
+      console.error(error);
+    }
+  };
+
+  const closeFormProjeto = () => {
+    setModoCadastroProjeto(false);
+    setEditingProjeto(null);
+    setFormProjeto({ nome: '', descricao: '', apelido: '', data_inicio: '', data_fim: '', status: true, instituicao_id: getInstituicaoId() });
+  };
+
+  const editarProjeto = (projeto) => {
+    setEditingProjeto(projeto.id);
+    setModoCadastroProjeto(true);
+    const formatarParaInputDate = (data) => {
+      if (!data) return '';
+      const d = new Date(data);
+      return d.toISOString().split('T')[0];
+    };
+
+    setFormProjeto({
+      ...projeto,
+      data_inicio: formatarParaInputDate(projeto.data_inicio),
+      data_fim: formatarParaInputDate(projeto.data_fim),
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col p-4">
@@ -358,7 +454,6 @@ export default function ConfiguracoesInstituicao() {
             </div>
           </div>
         )}
-
 
         {tabAtiva === "usuarios" && (
           <div>
@@ -577,6 +672,89 @@ export default function ConfiguracoesInstituicao() {
                   Salvar
                 </button>
               </div>
+            )}
+          </div>
+        )}
+
+        {tabAtiva === "projetos" && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Projetos da Instituição</h2>
+              <button onClick={() => setModoCadastroProjeto(true)} className="text-sm bg-sky-600 text-white px-4 py-2 rounded">+ Novo Projeto</button>
+            </div>
+
+            {modoCadastroProjeto ? (
+              <div className="border bg-gray-50 p-4 rounded-md mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-md font-semibold text-sky-700">Cadastrar/Editar Projeto</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                  <div className="col-span-8 flex items-center gap-2">
+                    <Input label="Nome do Projeto*" name="nome" value={formProjeto.nome} onChange={handleChangeProjeto} />
+                    <Input label="Apelido do Projeto" name="apelido" value={formProjeto.apelido} onChange={handleChangeProjeto} />
+                  </div>
+                  <div className="col-span-4 flex items-center gap-4">
+                    <Input label="Data de Início*" name="data_inicio" type="date" value={formProjeto.data_inicio} onChange={handleChangeProjeto} />
+                    <Input label="Data Fim" name="data_fim" type="date" value={formProjeto.data_fim} onChange={handleChangeProjeto} />
+                    <div className="flex flex-col h-full space-y-3">
+                      <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                        Status
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormProjeto((prev) => ({
+                            ...prev,
+                            status: !prev.status,
+                          }))
+                        }
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formProjeto.status ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formProjeto.status ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <Textarea label="Descrição" name="descricao" value={formProjeto.descricao} onChange={handleChangeProjeto} rows={4} />
+                <div className="flex justify-end mt-4">
+                  <button onClick={closeFormProjeto} className="text-gray-600 underline px-4 py-2 rounded text-sm">Cancelar</button>
+                  <button onClick={salvarProjeto} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">Salvar</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {projetosExistentes.length === 0 ? (
+                  <p className="text-sm text-gray-500">Nenhum projeto cadastrado ainda.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {projetosExistentes.map((proj) => (
+                      <li key={proj.id} className="border bg-white p-4 rounded shadow-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-semibold text-md text-sky-700">{proj.nome}</h3>
+                          <div className="flex items-center gap-2">
+                            <Tooltip text={proj.status ? "Ativo" : "Inativo"} position="left">
+                              <span className={`${proj.status ? "text-green-600" : "text-red-500"}`}>
+                                {proj.status ? <CircleCheck size={16} /> : <CircleX size={16} />}
+                              </span>
+                            </Tooltip>
+                            <Tooltip text={"Editar"} position="top">
+                              <button className="text-blue-600 hover:text-blue-800" onClick={() => editarProjeto(proj)}>
+                                <Edit2 size={16} />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600">{proj.descricao}</p>
+                        <p className="text-xs text-gray-400 mt-1">Início: {formatarDataIso(proj.data_inicio)} {proj.data_fim && `| Fim: ${formatarDataIso(proj.data_fim)}`}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
             )}
           </div>
         )}
