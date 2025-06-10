@@ -36,7 +36,6 @@ export default function Sidebar() {
     { label: "Doações", icon: <HeartHandshake />, path: "/instituicao/doacoes" },
     { label: "Assistidos", icon: <Users />, path: "/instituicao/assistidos" },
     { label: "Lista de Espera", icon: <Clock />, path: "/instituicao/lista-espera" },
-    { label: "Relatórios", icon: <BarChart2 />, path: "/instituicao/relatorios" },
   ];
 
   const logout = () => {

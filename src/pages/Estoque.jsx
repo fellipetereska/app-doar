@@ -12,6 +12,8 @@ import { toast } from 'react-toastify';
 const Estoque = () => {
   const [instituicaoId] = useState(getInstituicaoId());
   const [estoque, setEstoque] = useState([]);
+  const [estoqueFiltrado, setEstoqueFiltrado] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const columns = [
     { header: 'ID', accessor: 'id', sortable: true },
@@ -29,6 +31,7 @@ const Estoque = () => {
       const data = await res.json();
       const filterEstoque = data.filter((item) => item.quantidade > 0);
       setEstoque(filterEstoque);
+      setEstoqueFiltrado(filterEstoque);
     } catch (err) {
       console.error("Erro ao carregar o estoque.", err);
     }
@@ -43,9 +46,23 @@ const Estoque = () => {
     setOnEdit(item);
   };
 
-  const handleDelete = (item) => {
-    console.log('Excluir:', item);
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+
+    if (!term) {
+      setEstoqueFiltrado(estoque);
+      return;
+    }
+
+    const termoMin = term.toLowerCase();
+
+    const filtrado = estoque.filter((item) =>
+      `${item.categoria} ${item.subcategoria}`.toLowerCase().includes(termoMin)
+    );
+
+    setEstoqueFiltrado(filtrado);
   };
+
 
   const handleAddItem = async (formData) => {
     setIsModalOpen(false);
@@ -92,7 +109,7 @@ const Estoque = () => {
         {/* Barra de pesquisa (centralizada) */}
         <div className="flex-grow flex justify-center">
           <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
-            <SearchInput placeholder="Buscar item no estoque..." />
+            <SearchInput placeholder="Buscar item no estoque..." onSearch={handleSearch} />
           </div>
         </div>
 
@@ -105,7 +122,7 @@ const Estoque = () => {
       </div>
       <TableDefault
         columns={columns}
-        data={estoque}
+        data={estoqueFiltrado}
         onEdit={handleEdit}
       />
 

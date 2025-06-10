@@ -46,7 +46,7 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
 
   return (
     <div className="flex flex-col h-full gap-2">
-      <div className="flex-1 overflow-auto custom-scrollbar rounded-md shadow-md">
+      <div className="flex-1 overflow-auto custom-scrollbar rounded-md">
         <table className="min-w-full bg-white text-sm text-center">
           <thead className="border-b border-gray-200 text-gray-700 sticky top-0">
             <tr>
@@ -202,18 +202,18 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
             </button>
           </div>
         </div>
+        {legenda.length > 0 && (
+          <div className="w-full px-2 mt-2 text-xs text-gray-700 flex flex-wrap justify-end gap-2">
+            <span className='font-medium'>Legenda:</span>
+            {legenda.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${item.cor}`}></span>
+                <span>{item.texto}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      {legenda.length > 0 && (
-        <div className="w-full px-2 text-xs text-gray-700 flex flex-wrap justify-end gap-2">
-          <span className='font-medium'>Legenda:</span>
-          {legenda.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1">
-              <span className={`w-2 h-2 rounded-full ${item.cor}`}></span>
-              <span>{item.texto}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

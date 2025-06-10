@@ -63,6 +63,8 @@ const Assistidos = () => {
   const [instituicaoId] = useState(getInstituicaoId());
 
   const [assistidos, setAssistidos] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [assistidosFiltrados, setAssistidosFiltrados] = useState([]);
   const [selectedAssistido, setSelectedAssistido] = useState(null);
   const [isEdicao, setIsEdicao] = useState(false);
 
@@ -77,6 +79,7 @@ const Assistidos = () => {
       const data = await response.json();
 
       setAssistidos(data);
+      setAssistidosFiltrados(data);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -87,6 +90,26 @@ const Assistidos = () => {
   useEffect(() => {
     fetchAssistidos();
   }, []);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+
+    if (!term) {
+      setAssistidosFiltrados(assistidos);
+      return;
+    }
+
+    const termoMin = term.toLowerCase();
+
+    const filtrados = assistidos.filter((item) => {
+      const nome = item.assistido?.nome?.toLowerCase() ?? '';
+      const doc = item.assistido?.documento ?? '';
+      return nome.includes(termoMin) || doc.includes(termoMin);
+    });
+
+    setAssistidosFiltrados(filtrados);
+  };
+
 
   const handleEdit = (item) => {
     setSelectedAssistido(item);
@@ -144,7 +167,7 @@ const Assistidos = () => {
       <div className="w-full flex justify-between items-center p-4">
         <div className="flex-grow flex justify-center">
           <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
-            <SearchInput placeholder="Buscar Assistido..." />
+            <SearchInput placeholder="Buscar Assistido..." onSearch={handleSearch} />
           </div>
         </div>
 
@@ -156,7 +179,7 @@ const Assistidos = () => {
       </div>
       <TableDefault
         columns={columns}
-        data={assistidos}
+        data={assistidosFiltrados}
         onEdit={(item) => handleEdit(item)}
         isLoading={loading}
       />

@@ -16,6 +16,8 @@ const ListaEspera = () => {
 
   const [instituicaoId, setInstituicaoId] = useState(getInstituicaoId());
   const [assistidos, setAssistidos] = useState([]);
+  const [assistidosFiltrados, setAssistidosFiltrados] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [onEdit, setOnEdit] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,7 @@ const ListaEspera = () => {
 
       const listaEspera = dadosFormatados.filter((assistido) => assistido.status_lista_espera === 1);
       setAssistidos(listaEspera);
+      setAssistidosFiltrados(listaEspera);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -53,6 +56,25 @@ const ListaEspera = () => {
   useEffect(() => {
     fetchAssistidos();
   }, []);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+
+    if (!term) {
+      setAssistidosFiltrados(assistidos);
+      return;
+    }
+
+    const termo = term.toLowerCase();
+
+    const filtrados = assistidos.filter((a) =>
+      a.nome?.toLowerCase().includes(termo) ||
+      a.documento?.replace(/\D/g, '').includes(termo)
+    );
+
+    setAssistidosFiltrados(filtrados);
+  };
+
 
   const handleEdit = (item) => {
     if (!item) return;
@@ -73,7 +95,7 @@ const ListaEspera = () => {
       <div className="w-full flex justify-between items-center p-4">
         <div className="flex-grow flex justify-center">
           <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
-            <SearchInput placeholder="Buscar Assistido..." />
+            <SearchInput placeholder="Buscar Assistido..." onSearch={handleSearch} />
           </div>
         </div>
 
@@ -89,7 +111,7 @@ const ListaEspera = () => {
 
       <TableDefault
         columns={columns}
-        data={assistidos}
+        data={assistidosFiltrados}
         onEdit={(item) => handleEdit(item)}
         isLoading={loading}
       />

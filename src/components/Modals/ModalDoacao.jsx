@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
+import { saveAs } from 'file-saver';
 
 import Modal from './Modal';
 import { toast } from 'react-toastify';
-import { MapPin } from 'lucide-react';
+import { MapPin, FileDown } from 'lucide-react';
 import { connect } from '../../services/api';
-
+import ToolTip from '../Auxiliares/ToolTip';
 
 const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange }) => {
   const [novoStatus, setNovoStatus] = useState('');
 
   useEffect(() => {
-    console.log(doacao);
     setNovoStatus(doacao.status || '');
   }, [doacao]);
 
@@ -48,10 +48,34 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange }) => {
 
     if (!destino || destino.trim() === '') {
       console.error("Endereço não informado.");
-      return null;
+      return;
     }
 
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}&travelmode=driving`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}&travelmode=driving`;
+    window.open(url, '_blank');
+  };
+
+
+  const gerarTermo = async () => {
+    try {
+      const response = await fetch(`${connect}/entregas/gerar_termo/${doacao.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+
+      if (!response.ok) throw new Error('Erro ao gerar termo');
+
+      const blob = await response.blob();
+      const nomeArquivo = `termo_${doacao.nome_assistido}_${doacao.id}.pdf`
+        .replace(/\s+/g, '_')
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      saveAs(blob, nomeArquivo);
+    } catch (error) {
+      console.error('Erro ao crear termo:', error);
+    }
   };
 
   return (
@@ -59,7 +83,32 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange }) => {
       <div className="space-y-6 text-sm text-gray-800">
 
         {/* Informações da doação */}
-        <h3 className="text-lg font-semibold text-sky-800">Informações da Doação</h3>
+        <div className='flex justify-between gap-2 items-center'>
+          <h3 className="text-lg font-semibold text-sky-800">Informações da Doação</h3>
+          <div className='flex items-center gap-2 pr-3'>
+            {/* Gerar Rota */}
+            {doacao.tipo_entrega === 'entregar' && doacao.cep_assistido && (
+              <ToolTip text="Ver Rotas" position='left'>
+                <button
+                  onClick={gerarLinkRota}
+                  className="text-emerald-500 hover:text-emerald-700"
+                >
+                  <MapPin size={22} />
+                </button>
+              </ToolTip>
+            )}
+
+            {/* Gerar Termo */}
+            <ToolTip text="Baixar Termo" position='bottom'>
+              <button
+                onClick={gerarTermo}
+                className="text-blue-500 hover:text-blue-700"
+              >
+                <FileDown size={22} />
+              </button>
+            </ToolTip>
+          </div>
+        </div>
         <div className="rounded-md space-y-3">
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-between">
             <div className="">
@@ -103,22 +152,6 @@ const ModalDoacao = ({ isOpen, onClose, doacao, onStatusChange }) => {
                 </div>
               </div>
             </div>
-
-            {doacao.tipo_entrega === 'entregar' && doacao.cep_assistido && (
-              <div className="w-full mt-3">
-                <a
-                  href={gerarLinkRota()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded transition"
-                >
-                  <div className='flex items-center gap-1'>
-                    <MapPin size={20} />
-                    Ver rota no Google Maps
-                  </div>
-                </a>
-              </div>
-            )}
 
             <div className='w-full'>
               {/* Botão com o link do maps com a rota para o endereço, abrir direto no maps */}
