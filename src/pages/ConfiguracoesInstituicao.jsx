@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, CircleX, CircleCheck } from "lucide-react";
 
 // Componentes
-import { formatarDataIso, getInstituicaoId } from '../components/Auxiliares/helper';
+import { formatarCep, formatarDataIso, formatarDocumento, formatarTelefone, getInstituicaoId } from '../components/Auxiliares/helper';
 import { toast } from "react-toastify";
 import { connect } from "../services/api";
 import Tooltip from "../components/Auxiliares/ToolTip";
@@ -16,7 +16,6 @@ const tabs = [
   { id: "usuarios", label: "Usuários" },
   { id: "categorias", label: "Categorias" },
   { id: "projetos", label: "Projetos" },
-  { id: "configuracoes", label: "Outras Configurações" },
 ];
 
 export default function ConfiguracoesInstituicao() {
@@ -92,14 +91,15 @@ export default function ConfiguracoesInstituicao() {
     try {
       const res = await fetch(`${connect}/instituicao/${instituicaoId}`);
       const data = await res.json();
-      console.log(data);
       setInstituicao(data);
       setFormInstituicao({
         id: data.id,
         nome: data.nome,
+        tipo_documento: data.tipo_documento,
+        cnpj: formatarDocumento(data) || data.cnpj,
         email: data.email,
-        telefone: data.telefone,
-        cep: data.cep,
+        telefone: formatarTelefone(data) || data.telefone,
+        cep: formatarCep(data) || data.cep,
         logradouro: data.logradouro,
         endereco: data.endereco,
         numero: data.numero,
@@ -107,8 +107,6 @@ export default function ConfiguracoesInstituicao() {
         bairro: data.bairro,
         cidade: data.cidade,
         uf: data.uf,
-        tipo_documento: data.tipo_documento,
-        cnpj: data.cnpj,
         descricao: data.descricao
       });
     } catch (err) {
@@ -215,7 +213,6 @@ export default function ConfiguracoesInstituicao() {
 
   const salvarEdicaoUsuario = async () => {
     try {
-      console.log("Enviando:", JSON.stringify(formUsuario, null, 2));
       const res = await fetch(`${connect}/usuario/${usuarioEditando.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -340,10 +337,6 @@ export default function ConfiguracoesInstituicao() {
       const url = isEditando
         ? `${connect}/projeto/${editingProjeto}`
         : `${connect}/projeto`;
-
-      console.log(metodo);
-      console.log(url);
-      console.log(formProjeto);
 
       const response = await fetch(url, {
         method: metodo,

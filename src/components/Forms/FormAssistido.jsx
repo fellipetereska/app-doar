@@ -23,8 +23,8 @@ const FormAssistido = ({ onSubmit, selectedAssistido, instituicao_id, fetchAssis
     cidade: '',
     uf: '',
     telefone: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: '',
+    longitude: '',
   });
   const tipoDocumentoOptions = [
     { value: 'cpf', label: 'CPF' },
@@ -127,8 +127,8 @@ const FormAssistido = ({ onSubmit, selectedAssistido, instituicao_id, fetchAssis
       bairro: '',
       cidade: '',
       uf: '',
-      latitude: 0,
-      longitude: 0,
+      latitude: '',
+      longitude: '',
     });
   };
 

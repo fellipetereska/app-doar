@@ -93,8 +93,6 @@ const NewDonation = ({ instituicaoId, onSuccess, assistidos, estoque }) => {
       quantidade: qtd,
     };
 
-    console.log('Item adicionado:', novoItem);
-
     setItensSelecionados(prev => [...prev, novoItem]);
 
     // Resetar campos

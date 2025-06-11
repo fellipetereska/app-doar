@@ -115,7 +115,7 @@ const HomeInstituicao = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4">
+    <div className="min-h-screen flex flex-col px-4 py-2">
       <h1 className="text-2xl font-bold mb-4 text-sky-700">Home</h1>
       <div className='grid grid-cols-5 gap-4'>
         <Indicador title={`Doações Recebidas ${ano}`} value={indicadores.recebidasAno} borderColor="border-blue-500" textColor="text-blue-500"></Indicador>
@@ -125,9 +125,9 @@ const HomeInstituicao = () => {
         <Indicador title={`Lista de Espera ${ano}`} value={indicadores.listaEspera} borderColor="border-purple-500" textColor="text-purple-500"></Indicador>
       </div>
       {/* Doações Recebidas */}
-      <div className="mt-8">
-        <div className='flex items-center justify-between gap-2'>
-          <h2 className="text-lg font-bold mb-2 text-sky-700">Doações Recebidas</h2>
+      <div className="mt-4">
+        <div className='flex items-center justify-between gap-2 mb-2'>
+          <h2 className="text-lg font-bold text-sky-700">Doações Recebidas</h2>
           <div className='flex items-center justify-between gap-2'>
             <div className="flex gap-2">
               <button
@@ -154,8 +154,7 @@ const HomeInstituicao = () => {
             <div
               onClick={() => scroll(scrollRefRecebidas, 'left')}
               className="absolute left-0 top-0 h-full w-12 z-10 cursor-pointer
-              bg-gradient-to-r to-transparent 
-              hover:from-gray-300/80 hover:to-transparent
+              bg-gradient-to-r to-transparent hover:from-sky-200/50 hover:to-transparent
               transition duration-300 ease-in-out"
             >
               <div className="h-full flex items-center justify-start pl-2">
@@ -185,7 +184,7 @@ const HomeInstituicao = () => {
               onClick={() => scroll(scrollRefRecebidas, 'right')}
               className="absolute right-0 top-0 h-full w-12 z-10 cursor-pointer
              bg-gradient-to-l to-transparent 
-             hover:from-gray-300/80 hover:to-transparent
+             hover:from-sky-200/50 hover:to-transparent
              transition duration-300 ease-in-out"
             >
               <div className="h-full flex items-center justify-end pr-2">
@@ -197,7 +196,7 @@ const HomeInstituicao = () => {
       </div>
 
       {/* Doações Globais */}
-      <div className="mt-8">
+      <div className="mt-4">
         <h2 className="text-lg font-bold mb-2 text-sky-700">Doações Gerais</h2>
 
         <div className="relative">
@@ -205,9 +204,8 @@ const HomeInstituicao = () => {
             <div
               onClick={() => scroll(scrollRefGerais, 'left')}
               className="absolute left-0 top-0 h-full w-12 z-10 cursor-pointer
-             bg-gradient-to-r from-white/90 to-transparent 
-             hover:from-gray-200/80 hover:to-transparent
-             transition duration-300 ease-in-out"
+              bg-gradient-to-r to-transparent hover:from-sky-200/50 hover:to-transparent
+              transition duration-300 ease-in-out"
             >
               <div className="h-full flex items-center justify-start pl-2">
                 <ChevronLeft className="text-gray-600 hover:text-gray-800" size={24} />
@@ -236,8 +234,8 @@ const HomeInstituicao = () => {
             <div
               onClick={() => scroll(scrollRefGerais, 'right')}
               className="absolute right-0 top-0 h-full w-12 z-10 cursor-pointer
-             bg-gradient-to-l from-white/90 to-transparent 
-             hover:from-gray-200/80 hover:to-transparent
+             bg-gradient-to-l to-transparent 
+             hover:from-sky-200/50 hover:to-transparent
              transition duration-300 ease-in-out"
             >
               <div className="h-full flex items-center justify-end pr-2">

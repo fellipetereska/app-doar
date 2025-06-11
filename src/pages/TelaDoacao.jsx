@@ -147,7 +147,7 @@ const DoacoesInstituicao = () => {
 
       buscarDoacoes();
     } catch (err) {
-      console.log("Erro ao atualizar o status da entrega", err.message);
+      console.error("Erro ao atualizar o status da entrega", err.message);
     }
   };
 
