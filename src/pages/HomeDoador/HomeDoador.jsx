@@ -7,7 +7,6 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { api } from '../../services/api';
 
 import LocationModal from "./components/LocationModal/LocationModal";
 import CompanyModal from "./components/CompanyModal/CompanyModal";
