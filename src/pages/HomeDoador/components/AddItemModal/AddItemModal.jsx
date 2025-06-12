@@ -1,111 +1,33 @@
-import React, { useState } from "react";
+import React from "react";
 import Modal from "react-modal";
-import { FiX, FiPlus } from "react-icons/fi";
-import useDonation from "../hooks/useDonation";
-import { useModal } from "../hooks/useModal";
-import { toast } from "react-toastify";
+import { FiX } from "react-icons/fi";
 
-import { donationCategories } from "../../constants";
-
-const AddItemModal = () => {
-  const { addDonationItem } = useDonation();
-  const { isAddItemModalOpen, closeAddItemModal } = useModal();
-
-
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [itemDescription, setItemDescription] = useState("");
-  const [itemQuantity, setItemQuantity] = useState(1);
-  const [itemCondition, setItemCondition] = useState("novo");
-  const [itemImages, setItemImages] = useState([]);
-  const [formErrors, setFormErrors] = useState({
-    category: false,
-    subcategory: false,
-    itemDescription: false,
-    itemImages: false,
-  });
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    const remainingSlots = 6 - itemImages.length;
-    if (files.length > remainingSlots) {
-      toast.warning(`Você só pode adicionar mais ${remainingSlots} imagem(ns)`);
-      return;
-    }
-
-    const validImages = files.filter((file) => file.size <= 2 * 1024 * 1024);
-    if (validImages.length < files.length) {
-      toast.error("Algumas imagens excedem o tamanho máximo de 2MB");
-    }
-
-    setItemImages([...itemImages, ...validImages]);
-    e.target.value = "";
-  };
-
-  const removeImage = (index) => {
-    setItemImages(itemImages.filter((_, i) => i !== index));
-  };
-
-  const handleAddItem = () => {
-    const errors = {
-      category: !selectedCategory,
-      subcategory: !selectedSubcategory,
-      itemDescription: !itemDescription.trim(),
-      itemImages: itemImages.length === 0,
-    };
-
-    setFormErrors(errors);
-
-    if (Object.values(errors).some((error) => error)) {
-      if (errors.category) toast.error("Selecione uma categoria para o item");
-      if (errors.subcategory)
-        toast.error("Selecione uma subcategoria para o item");
-      if (errors.itemDescription) toast.error("Informe a descrição do item");
-      if (errors.itemImages)
-        toast.error("Adicione pelo menos uma foto do item");
-      return;
-    }
-
-    const newItem = {
-      id: Date.now(),
-      name: `${selectedSubcategory} (${selectedCategory})`,
-      description: itemDescription.trim(),
-      category: selectedCategory,
-      subcategory: selectedSubcategory,
-      quantity: itemQuantity,
-      condition: itemCondition,
-      images: [...itemImages],
-    };
-
-    addDonationItem(newItem);
-    closeAddItemModal();
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setSelectedCategory("");
-    setSelectedSubcategory("");
-    setItemDescription("");
-    setItemQuantity(1);
-    setItemCondition("novo");
-    setItemImages([]);
-    setFormErrors({
-      category: false,
-      subcategory: false,
-      itemDescription: false,
-      itemImages: false,
-    });
-  };
-
+const AddItemModal = ({
+  isOpen,
+  onClose,
+  selectedCategory,
+  setSelectedCategory,
+  selectedSubcategory,
+  setSelectedSubcategory,
+  itemDescription,
+  setItemDescription,
+  itemQuantity,
+  setItemQuantity,
+  itemCondition,
+  setItemCondition,
+  itemImages,
+  handleImageUpload,
+  removeImage,
+  formErrors,
+  setFormErrors,
+  donationCategories,
+  handleAddItem,
+  isFormComplete,
+}) => {
   return (
     <Modal
-      isOpen={isAddItemModalOpen}
-      onRequestClose={() => {
-        closeAddItemModal();
-        resetForm();
-      }}
+      isOpen={isOpen}
+      onRequestClose={onClose}
       contentLabel="Adicionar Item"
       className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
@@ -116,16 +38,12 @@ const AddItemModal = () => {
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-xl font-bold text-gray-800">Adicionar Item</h2>
           <button
-            onClick={() => {
-              closeAddItemModal();
-              resetForm();
-            }}
+            onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition"
           >
             <FiX size={24} />
           </button>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -135,7 +53,6 @@ const AddItemModal = () => {
               value={selectedCategory}
               onChange={(e) => {
                 setSelectedCategory(e.target.value);
-                setSelectedSubcategory("");
                 setFormErrors({ ...formErrors, category: false });
               }}
               className={`w-full p-2 border ${
@@ -250,7 +167,11 @@ const AddItemModal = () => {
             {itemImages.map((image, index) => (
               <div key={index} className="relative group">
                 <img
-                  src={URL.createObjectURL(image)}
+                  src={
+                    typeof image === "string"
+                      ? image
+                      : URL.createObjectURL(image)
+                  }
                   alt={`Prévia ${index + 1}`}
                   className="w-20 h-20 object-cover rounded-md border border-gray-300 shadow hover:opacity-90 transition-opacity"
                 />
@@ -270,7 +191,19 @@ const AddItemModal = () => {
                 htmlFor="itemImages"
                 className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition-colors"
               >
-                <FiPlus className="w-6 h-6 text-gray-400" />
+                <svg
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
                 <span className="text-xs text-gray-500 mt-1">
                   {itemImages.length}/6
                 </span>
@@ -302,17 +235,19 @@ const AddItemModal = () => {
 
         <div className="flex justify-end space-x-4 pt-4 border-t">
           <button
-            onClick={() => {
-              closeAddItemModal();
-              resetForm();
-            }}
+            onClick={onClose}
             className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
           >
             Cancelar
           </button>
           <button
             onClick={handleAddItem}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition"
+            disabled={!isFormComplete}
+            className={`py-2 px-4 rounded-md font-medium transition ${
+              isFormComplete
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Adicionar Item
           </button>

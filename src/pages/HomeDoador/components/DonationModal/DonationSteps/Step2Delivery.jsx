@@ -1,39 +1,49 @@
 import React from "react";
-import { FiArrowLeft, FiArrowRight, FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
-import  useDonation  from "../hooks/useDonation";
-import  {useModal}  from "../hooks/useModal";
-import { toast } from "react-toastify";
+import {
+  FiPlus,
+  FiArrowLeft,
+  FiArrowRight,
+  FiTrash2,
+  FiEdit2,
+} from "react-icons/fi";
 
-const DonationStep2 = ({ nextStep, prevStep }) => {
-  const {
-    redirectIfRefused,
-    setRedirectIfRefused,
-    deliveryMethod,
-    setDeliveryMethod,
-    address,
-    setAddress,
-    observations,
-    setObservations,
-    phone,
-    setPhone,
-    savedAddresses,
-    setSavedAddresses,
-    selectAddress,
-    editAddress,
-    deleteAddress
-  } = useDonation();
-  
-  const { openAddressModal } = useModal();
+const Step2Delivery = ({
+  deliveryMethod,
+  setDeliveryMethod,
+  redirectIfRefused,
+  setRedirectIfRefused,
+  address,
+  phone,
+  setPhone,
+  observations,
+  setObservations,
+  savedAddresses,
+  openAddressModal,
+  selectAddress,
+  editAddress,
+  deleteAddress,
+  prevStep,
+  nextStep,
+}) => {
+  const isAddressSelected = (addr) => {
+    return address && address.id === addr.id;
+  };
 
-  const handleNextStep = () => {
-    if (deliveryMethod === "collect") {
-      if (!phone || !address.cep || !address.logradouro || !address.numero || 
-          !address.bairro || !address.localidade || !address.uf || !observations) {
-        toast.error("Preencha todos os campos obrigatórios");
-        return;
-      }
+  const isFormComplete = () => {
+    if (deliveryMethod === "take") {
+      return true; 
     }
-    nextStep();
+
+    return (
+      phone.trim() !== "" &&
+      observations.trim() !== "" &&
+      address.cep &&
+      address.logradouro &&
+      address.numero &&
+      address.bairro &&
+      address.localidade &&
+      address.uf
+    );
   };
 
   return (
@@ -52,14 +62,13 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
             className="mt-1 mr-2"
           />
           <label htmlFor="redirectIfRefused" className="text-gray-700">
-            Caso a instituição recuse algum item, redirecionar automaticamente para outra instituição
+            Caso a instituição recuse algum item, redirecionar automaticamente
+            para outra instituição
           </label>
         </div>
 
         <div>
-          <h4 className="font-medium text-gray-700 mb-2">
-            Método de entrega
-          </h4>
+          <h4 className="font-medium text-gray-700 mb-2">Método de entrega</h4>
           <div className="space-y-2">
             <div className="flex items-center">
               <input
@@ -120,26 +129,35 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
 
               {savedAddresses.length > 0 && (
                 <div className="mt-2 space-y-2">
-                  <p className="text-sm text-gray-600">Ou selecione um endereço salvo:</p>
+                  <p className="text-sm text-gray-600">
+                    Ou selecione um endereço salvo:
+                  </p>
                   {savedAddresses.map((addr) => (
-                    <div 
-                      key={addr.id} 
-                      className={`border rounded-md p-3 cursor-pointer ${address.cep === addr.cep ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                    <div
+                      key={addr.id}
+                      className={`border rounded-md p-3 cursor-pointer ${
+                        isAddressSelected(addr)
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200"
+                      }`}
                       onClick={() => selectAddress(addr)}
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           <h5 className="font-medium">{addr.name}</h5>
                           <p className="text-sm text-gray-600">
-                            {addr.logradouro}, {addr.numero}{addr.complemento && `, ${addr.complemento}`}
+                            {addr.logradouro}, {addr.numero}
+                            {addr.complemento && `, ${addr.complemento}`}
                           </p>
                           <p className="text-sm text-gray-600">
                             {addr.bairro}, {addr.localidade} - {addr.uf}
                           </p>
-                          <p className="text-sm text-gray-600">CEP: {addr.cep}</p>
+                          <p className="text-sm text-gray-600">
+                            CEP: {addr.cep}
+                          </p>
                         </div>
                         <div className="flex space-x-2">
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               editAddress(addr);
@@ -148,7 +166,7 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
                           >
                             <FiEdit2 size={16} />
                           </button>
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteAddress(addr.id);
@@ -182,7 +200,7 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
         )}
       </div>
 
-      <div className="flex justify-between pt-4 border-t">
+      <div className="flex justify-between py-4 border-t">
         <button
           onClick={prevStep}
           className="flex items-center justify-center py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
@@ -190,8 +208,13 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
           <FiArrowLeft className="mr-2" /> Voltar
         </button>
         <button
-          onClick={handleNextStep}
-          className="flex items-center justify-center py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition"
+          onClick={nextStep}
+          disabled={!isFormComplete()}
+          className={`flex items-center justify-center py-2 px-4 ${
+            isFormComplete()
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-gray-400 cursor-not-allowed"
+          } text-white rounded-md font-medium transition`}
         >
           Próximo <FiArrowRight className="ml-2" />
         </button>
@@ -200,4 +223,4 @@ const DonationStep2 = ({ nextStep, prevStep }) => {
   );
 };
 
-export default DonationStep2;
+export default Step2Delivery;
