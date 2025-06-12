@@ -1,24 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
-import useDonation from "../hooks/useDonation";
 
-const DonationStep3 = ({ prevStep }) => {
-  const {
-    selectedCompany,
-    donationItems,
-    deliveryMethod,
-    redirectIfRefused,
-    address,
-    observations,
-    phone,
-    handleSubmitDonation
-  } = useDonation();
+const Step3Confirmation = ({
+  company,
+  donationItems,
+  deliveryMethod,
+  address,
+  observations,
+  phone,
+  redirectIfRefused,
+  prevStep,
+  handleSubmitDonation,
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    await handleSubmitDonation();
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
-        Confirmação
-      </h3>
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">Confirmação</h3>
 
       <div className="bg-green-50 border border-green-200 rounded-md p-4">
         <h4 className="font-medium text-green-800 mb-2">
@@ -26,14 +30,15 @@ const DonationStep3 = ({ prevStep }) => {
         </h4>
         <p className="text-gray-700">
           Você está doando{" "}
-          <span className="font-bold">{donationItems.length} itens</span>{" "}
-          para <span className="font-bold">{selectedCompany?.name}</span>.
+          <span className="font-bold">
+            {donationItems.length}{" "}
+            {donationItems.length === 1 ? "item" : "itens"}
+          </span>{" "}
+          para <span className="font-bold">{company?.name}</span>.
         </p>
 
         <div className="mt-4">
-          <h5 className="font-medium text-gray-700 mb-1">
-            Método de entrega:
-          </h5>
+          <h5 className="font-medium text-gray-700 mb-1">Método de entrega:</h5>
           <p className="text-gray-600">
             {deliveryMethod === "take"
               ? "Eu mesmo levarei os itens até a instituição"
@@ -53,9 +58,9 @@ const DonationStep3 = ({ prevStep }) => {
         {redirectIfRefused && (
           <div className="mt-2">
             <p className="text-sm text-gray-600">
-              <span className="font-medium">Observação:</span> Se algum
-              item for recusado, buscaremos automaticamente outra
-              instituição que possa recebê-lo.
+              <span className="font-medium">Observação:</span> Se algum item for
+              recusado, buscaremos automaticamente outra instituição que possa
+              recebê-lo.
             </p>
           </div>
         )}
@@ -67,15 +72,9 @@ const DonationStep3 = ({ prevStep }) => {
             <h4 className="font-medium text-gray-700 mb-2">
               Horário para doação:
             </h4>
-            <p className="text-gray-600">
-              {selectedCompany?.donationInfo.hours}
-            </p>
-            <h4 className="font-medium text-gray-700 mt-4 mb-2">
-              Endereço:
-            </h4>
-            <p className="text-gray-600">
-              {selectedCompany?.donationInfo.address}
-            </p>
+            <p className="text-gray-600">{company?.donationInfo.hours}</p>
+            <h4 className="font-medium text-gray-700 mt-4 mb-2">Endereço:</h4>
+            <p className="text-gray-600">{company?.donationInfo.address}</p>
           </>
         ) : (
           <>
@@ -106,19 +105,26 @@ const DonationStep3 = ({ prevStep }) => {
           <FiArrowLeft className="mr-2" /> Voltar
         </button>
         <button
-          onClick={handleSubmitDonation}
-          disabled={donationItems.length === 0}
+          onClick={handleSubmit}
+          disabled={donationItems.length === 0 || isSubmitting}
           className={`flex items-center justify-center py-2 px-4 rounded-md font-medium transition ${
-            donationItems.length === 0
+            donationItems.length === 0 || isSubmitting
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-green-600 hover:bg-green-700 text-white"
           }`}
         >
-          Confirmar Doação
+          {isSubmitting ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              Processando...
+            </div>
+          ) : (
+            "Confirmar Doação"
+          )}
         </button>
       </div>
     </div>
   );
 };
 
-export default DonationStep3;
+export default Step3Confirmation;

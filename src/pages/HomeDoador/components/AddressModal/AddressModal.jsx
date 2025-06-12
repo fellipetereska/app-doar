@@ -1,54 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Modal from "react-modal";
-import { FiX, FiEdit2, FiTrash2 } from "react-icons/fi";
-import  useDonation  from "../hooks/useDonation";
-import  {useModal}  from "../hooks/useModal";
-import { toast } from "react-toastify";
+import { FiX } from "react-icons/fi";
 
-const AddressModal = () => {
-  const {
-    isAddressModalOpen,
-    closeAddressModal,
-    editingAddressId,
-    setEditingAddressId
-  } = useModal();
-  
-  const {
-    address,
-    setAddress,
-    addressName,
-    setAddressName,
-    savedAddresses,
-    setSavedAddresses,
-    fetchCEP,
-    loadingCEP,
-    addressError,
-    saveAddress,
-    editAddress,
-    deleteAddress
-  } = useDonation();
-
-  const resetForm = () => {
-    setAddressName("");
-    setEditingAddressId(null);
-    setAddress({
-      cep: "",
-      logradouro: "",
-      numero: "",
-      complemento: "",
-      bairro: "",
-      localidade: "",
-      uf: "",
-    });
+const AddressModal = ({
+  isOpen,
+  onClose,
+  addressName = "",
+  setAddressName,
+  address = {
+    cep: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    localidade: "",
+    uf: ""
+  },
+  setAddress,
+  addressError,
+  loadingCEP,
+  editingAddressId,
+  fetchCEP,
+  saveAddress,
+}) => {
+  const handleInputChange = (field, value) => {
+    setAddress(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <Modal
-      isOpen={isAddressModalOpen}
-      onRequestClose={() => {
-        closeAddressModal();
-        resetForm();
-      }}
+      isOpen={isOpen}
+      onRequestClose={onClose}
       contentLabel="Gerenciar Endereços"
       className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1003] outline-none"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1002]"
@@ -61,10 +43,7 @@ const AddressModal = () => {
             {editingAddressId ? "Editar Endereço" : "Adicionar Endereço"}
           </h2>
           <button
-            onClick={() => {
-              closeAddressModal();
-              resetForm();
-            }}
+            onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition"
           >
             <FiX size={24} />
@@ -77,7 +56,7 @@ const AddressModal = () => {
           </label>
           <input
             type="text"
-            value={addressName}
+            value={addressName || ""}
             onChange={(e) => setAddressName(e.target.value)}
             placeholder="Ex: Casa, Trabalho, etc."
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -92,10 +71,10 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.cep}
+              value={address.cep || ""}
               onChange={(e) => {
                 const value = e.target.value;
-                setAddress({ ...address, cep: value });
+                handleInputChange('cep', value);
                 if (value.replace(/\D/g, "").length === 8) {
                   fetchCEP(value);
                 }
@@ -119,10 +98,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.logradouro}
-              onChange={(e) =>
-                setAddress({ ...address, logradouro: e.target.value })
-              }
+              value={address.logradouro || ""}
+              onChange={(e) => handleInputChange('logradouro', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -134,10 +111,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.numero}
-              onChange={(e) =>
-                setAddress({ ...address, numero: e.target.value })
-              }
+              value={address.numero || ""}
+              onChange={(e) => handleInputChange('numero', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -151,10 +126,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.complemento}
-              onChange={(e) =>
-                setAddress({ ...address, complemento: e.target.value })
-              }
+              value={address.complemento || ""}
+              onChange={(e) => handleInputChange('complemento', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
@@ -165,10 +138,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.bairro}
-              onChange={(e) =>
-                setAddress({ ...address, bairro: e.target.value })
-              }
+              value={address.bairro || ""}
+              onChange={(e) => handleInputChange('bairro', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -182,10 +153,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.localidade}
-              onChange={(e) =>
-                setAddress({ ...address, localidade: e.target.value })
-              }
+              value={address.localidade || ""}
+              onChange={(e) => handleInputChange('localidade', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -197,10 +166,8 @@ const AddressModal = () => {
             </label>
             <input
               type="text"
-              value={address.uf}
-              onChange={(e) =>
-                setAddress({ ...address, uf: e.target.value })
-              }
+              value={address.uf || ""}
+              onChange={(e) => handleInputChange('uf', e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -209,19 +176,13 @@ const AddressModal = () => {
 
         <div className="flex justify-end space-x-4 pt-4 border-t">
           <button
-            onClick={() => {
-              closeAddressModal();
-              resetForm();
-            }}
+            onClick={onClose}
             className="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition"
           >
             Cancelar
           </button>
           <button
-            onClick={() => {
-              saveAddress();
-              resetForm();
-            }}
+            onClick={saveAddress}
             className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition"
           >
             {editingAddressId ? "Atualizar Endereço" : "Salvar Endereço"}

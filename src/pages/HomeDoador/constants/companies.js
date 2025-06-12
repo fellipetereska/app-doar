@@ -1,10 +1,9 @@
-import placeholderImage from "../../media/images.png";
-
-import ong1 from "../../media/ong1.jpeg"
-import ong2 from "../../media/ong2.jpeg"
-import ong3 from "../../media/ong3.png"
-import ong4 from "../../media/ong4.jpeg"
-import ong5 from "../../media/ong5.png"
+import placeholderImage from "../../../media/images.png";
+import ong1 from "../../../media/ong1.jpeg";
+import ong2 from "../../../media/ong2.jpeg";
+import ong3 from "../../../media/ong3.png";
+import ong4 from "../../../media/ong4.jpeg";
+import ong5 from "../../../media/ong5.png";
 
 const companies = [
   {

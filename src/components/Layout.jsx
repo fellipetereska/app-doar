@@ -23,9 +23,9 @@ export default function Layout({ children }) {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative"> {/* Adicione relative aqui */}
           {!isLoginPage && !isInstituicao && <Navbar />}
-          <main className="flex-1 overflow-auto custom-scrollbar">
+          <main className="flex-1 overflow-auto custom-scrollbar relative z-0"> {/* Adicione z-0 aqui */}
             {children}
           </main>
         </div>

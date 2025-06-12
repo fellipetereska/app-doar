@@ -8,10 +8,10 @@ import PrivateRoute from './components/PrivateRoute';
 const Login = lazy(() => import('./pages/Login'));
 
 // Páginas Doador
-const HomeDoador = lazy(() => import('./pages/HomeDoador'));
+const HomeDoador = lazy(() => import('./pages/HomeDoador/HomeDoador'));
 
 // Páginas Instituição
-const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao'));
+const HomeInstituicao = lazy(() => import('./pages/HomeInstituicao.jsx'));
 const Estoque = lazy(() => import('./pages/Estoque'));
 const Assistidos = lazy(() => import('./pages/Assistidos'));
 const ListaEspera = lazy(() => import('./pages/ListaEspera'));
