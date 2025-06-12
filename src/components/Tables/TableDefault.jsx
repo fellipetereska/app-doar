@@ -6,16 +6,38 @@ import { LoadingSpin } from '../Loading';
 // Icons
 import { IoIosOpen } from "react-icons/io";
 import { IoMdTrash } from "react-icons/io";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
-function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoading }) {
+function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoading = false, legenda = [] }) {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const sortedData = React.useMemo(() => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      if (typeof aValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+  }, [data, sortConfig]);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcular dados paginados
-  const totalItems = data.length;
+  const totalItems = sortedData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
+  const currentData = sortedData.slice(startIndex, endIndex);
 
   // Funções de navegação
   const goToPage = (page) => {
@@ -23,14 +45,38 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="max-h-[75vh] overflow-auto custom-scrollbar rounded-md shadow-md">
+    <div className="flex flex-col h-full gap-2">
+      <div className="flex-1 overflow-auto custom-scrollbar rounded-md">
         <table className="min-w-full bg-white text-sm text-center">
           <thead className="border-b border-gray-200 text-gray-700 sticky top-0">
             <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className="px-6 py-4 font-bold">
-                  {col.header}
+                <th key={idx} className="px-6 py-4 font-bold cursor-pointer select-none">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>{col.header}</span>
+                    {col.sortable && (
+                      <button
+                        onClick={() =>
+                          setSortConfig((prev) => ({
+                            key: col.accessor,
+                            direction: prev.key === col.accessor && prev.direction === 'asc' ? 'desc' : 'asc'
+                          }))
+                        }
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
+                        title={`Ordenar por ${col.header.toLowerCase()} (${sortConfig.direction === 'asc' ? 'crescente' : 'decrescente'})`}
+                      >
+                        {sortConfig.key === col.accessor ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ChevronUp size={14} />
+                          ) : (
+                            <ChevronDown size={14} />
+                          )
+                        ) : (
+                          <ChevronsUpDown size={14} />
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </th>
               ))}
               {(onEdit || onDelete) && <th className="px-6 py-3 font-medium">Ações</th>}
@@ -57,10 +103,10 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
                   </tr>
                 ) : (
                   currentData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       {columns.map((col, i) => (
-                        <td key={i} className="px-6 py-4">
-                          {row[col.accessor] || '-'}
+                        <td key={i} className="px-6 py-4 capitalize">
+                          {col.render ? col.render(row[col.accessor], row) : (row[col.accessor] ?? '-')}
                         </td>
                       ))}
                       {(onEdit || onDelete) && (
@@ -156,6 +202,17 @@ function TableDefault({ columns, data, onEdit, onDelete, itemsPerPage = 8, isLoa
             </button>
           </div>
         </div>
+        {legenda.length > 0 && (
+          <div className="w-full px-2 mt-2 text-xs text-gray-700 flex flex-wrap justify-end gap-2">
+            <span className='font-medium'>Legenda:</span>
+            {legenda.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${item.cor}`}></span>
+                <span>{item.texto}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

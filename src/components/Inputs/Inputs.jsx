@@ -1,3 +1,7 @@
+import Select from 'react-select';
+import { useEffect, useState } from 'react';
+import { removeAccents } from '../Auxiliares/helper';
+
 export const Input = ({ label, name, value, onChange, required = true, type = 'text', min = 0 }) => (
   <div className="w-full">
     <label className="block text-sm font-medium text-gray-700">{label}</label>
@@ -43,7 +47,7 @@ export const SelectInput = ({
         className="mt-1 w-full border rounded-md px-3 py-2"
       >
         <option value="">{placeholder}</option>
-        {options.map((opt) => (
+        {options && options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
@@ -81,6 +85,61 @@ export const Textarea = ({
         placeholder={placeholder}
         rows={rows}
         className="mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500 resize-y min-h-16"
+      />
+    </div>
+  );
+};
+
+export const SelectSearch = ({
+  data = [],
+  onSelect,
+  placeholder = "",
+  label = "",
+  required = false,
+  name = ""
+}) => {
+  const [options, setOptions] = useState([]);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    const formattedOptions = data.map(item => ({
+      value: item.id,
+      label: item.nome
+    }));
+    setOptions(formattedOptions);
+  }, [data]);
+
+  const customFilterOption = (option, rawInput) => {
+    const label = removeAccents(option.label.toLowerCase());
+    const input = removeAccents(rawInput.toLowerCase());
+    return label.includes(input);
+  };
+
+  return (
+    <div className="w-full">
+      {label && (
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
+          {label}{required && '*'}
+        </label>
+      )}
+      <Select
+        id={name}
+        name={name}
+        options={options}
+        onChange={onSelect}
+        placeholder={placeholder}
+        required={required}
+        isClearable
+        filterOption={customFilterOption}
+        inputValue={inputValue}
+        onInputChange={(value) => setInputValue(value)}
+        menuIsOpen={inputValue.length > 0}
+        noOptionsMessage={() =>
+          inputValue.length === 0 ? 'Digite para buscar' : 'Nenhum item encontrado'
+        }
       />
     </div>
   );

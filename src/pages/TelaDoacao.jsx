@@ -1,306 +1,318 @@
-import React, { useState } from 'react';
-
-// Componentes
+import { useEffect, useState } from 'react';
+import { connect } from '../services/api';
+import TableDefault from '../components/Tables/TableDefault';
+import Modal from '../components/Modals/Modal';
+import NewDonation from '../components/NewDonation';
+import { formatarDocumento, formatarEndereco, formatarTelefone, getInstituicaoId, formatarDataIso } from '../components/Auxiliares/helper';
+import { ListFilter, Plus } from 'lucide-react';
 import ToolTip from '../components/Auxiliares/ToolTip';
+import ModalDoacao from '../components/Modals/ModalDoacao';
+import { SelectSearch } from '../components/Inputs/Inputs';
 
-// Icons
-import { IoIosAddCircle } from "react-icons/io";
-import { IoMdTrash } from "react-icons/io";
+const DoacoesInstituicao = () => {
+  const [instituicaoId] = useState(getInstituicaoId());
+  const [assistidos, setAssistidos] = useState([]);
+  const [estoque, setEstoque] = useState([]);
+  const [doacoes, setDoacoes] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDonation, setViewDonation] = useState(false);
+  const [selectedDonation, setSelectedDonation] = useState([]);
 
-const assistidosMock = [
-  { id: 1, name: 'José da Silva' },
-  { id: 2, name: 'Maria Oliveira' },
-];
+  const [loading, setLoading] = useState(false);
 
-const estoqueMock = [
-  { id: 1, name: 'Cesta Básica' },
-  { id: 2, name: 'Cobertor' },
-  { id: 3, name: 'Kit de Higiene' },
-  { id: 4, name: 'Fralda Geriátrica' },
-  { id: 5, name: 'Roupas Adulto M' },
-  { id: 6, name: 'Roupas Infantil P' },
-  { id: 7, name: 'Sabonete' },
-];
+  const [filtros, setFiltros] = useState({
+    status: 'pendente',
+    assistidoId: '',
+    data: '',
+    listaAssistidos: [],
+    tipo_entrega: '',
+  });
 
-const TelaDoacao = () => {
-  const [assistidoId, setAssistidoId] = useState('');
-  const [searchItem, setSearchItem] = useState('');
-  const [itemSelecionado, setItemSelecionado] = useState(null);
-  const [quantidade, setQuantidade] = useState(1);
-  const [itensSelecionados, setItensSelecionados] = useState([]);
-  const [step, setStep] = useState(1);
-  const [estoqueDisponivel, setEstoqueDisponivel] = useState(estoqueMock);
-  const [resultadosBusca, setResultadosBusca] = useState([]);
+  const legenda = [
+    { cor: 'bg-yellow-400', texto: 'Pendente' },
+    { cor: 'bg-green-500', texto: 'Finalizada' },
+    { cor: 'bg-gray-400', texto: 'Cancelada' },
+  ];
 
-  const assistido = assistidosMock.find(a => a.id.toString() === assistidoId);
+  const columns = [
+    { header: 'ID', accessor: 'id', sortable: true },
+    { header: 'Data', accessor: 'data', sortable: true },
+    { header: 'Assitido', accessor: 'nome_assistido', sortable: true },
+    { header: 'Observação', accessor: 'observacao' },
+    { header: 'Tipo', accessor: 'tipo_entrega', sortable: true },
+    {
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => (
+        <span className="flex items-center gap-2 justify-center">
+          <span className={`w-3 h-3 rounded-full ${value === 'pendente' ? 'bg-yellow-400' : value === 'finalizada' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+        </span>
+      )
+    }
+  ];
 
-  // Função de busca
-  const handleSearchItem = (value) => {
-    setSearchItem(value);
-    setItemSelecionado(null);
+  const fetchAssistidos = async () => {
+    try {
+      const queryParams = new URLSearchParams({ instituicaoId: instituicaoId }).toString();
+      const response = await fetch(`${connect}/assistido?${queryParams}`);
+      const data = await response.json();
 
-    if (value.trim() === "") {
-      setResultadosBusca([]);
+      // Formatando endereço
+      const dadosFormatados = data.map((item) => ({
+        ...item,
+        documento: formatarDocumento(item),
+        telefone: formatarTelefone(item),
+        endereco: formatarEndereco(item),
+      }));
+      setFiltros((prev) => ({ ...prev, listaAssistidos: dadosFormatados }));
+      setAssistidos(dadosFormatados);
+    } catch (error) {
+      setLoading(false);
+      console.error('Erro ao buscar assistidos:', error);
+    }
+  }
+
+  const fetchEstoque = async () => {
+    try {
+      const res = await fetch(`${connect}/estoque?instituicaoId=${instituicaoId}`);
+      const data = await res.json();
+      const filterEstoque = data.filter((item) => item.quantidade > 0);
+      setEstoque(filterEstoque);
+    } catch (err) {
+      console.error('Erro ao buscar doações.');
+    }
+  };
+
+  const buscarDoacoes = async () => {
+    try {
+      const params = {};
+
+      if (filtros.status) params.status = filtros.status;
+      if (filtros.tipo_entrega) params.tipo_entrega = filtros.tipo_entrega;
+      if (filtros.assistidoId) params.assistidoId = filtros.assistidoId;
+      if (filtros.data) params.data = filtros.data;
+
+      const query = new URLSearchParams(params).toString();
+
+      const res = await fetch(`${connect}/entregas/instituicao/${instituicaoId}?${query}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Erro ao buscar doações.');
+      }
+
+      const dadosFormatados = data.map((item) => ({
+        ...item,
+        data: formatarDataIso(item.data),
+      }))
+
+      setDoacoes(dadosFormatados);
+    } catch (err) {
+      console.error('Erro ao buscar doações.', err.message);
+    }
+  };
+
+  const loadScreen = async () => {
+    try {
+      setLoading(true);
+      await fetchAssistidos();
+      await fetchEstoque();
+      await buscarDoacoes();
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error("Erro ao carregar tela de doações.", error);
+    }
+  }
+
+  const handleEdit = async (item) => {
+    setViewDonation(true);
+    setSelectedDonation(item);
+  }
+
+  const atualizarStatus = async (id, status) => {
+    try {
+      const res = await fetch(`${connect}/entregas/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Erro ao atualizar o status da entrega.');
+      }
+
+      buscarDoacoes();
+    } catch (err) {
+      console.error("Erro ao atualizar o status da entrega", err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadScreen();
+  }, []);
+
+  const handleChangeFilter = (e) => {
+    if (!e) {
       return;
     }
 
-    // Aqui você pode aplicar um filtro local ou uma chamada de API
-    const resultados = estoqueDisponivel.filter(item =>
-      item.name.toLowerCase().includes(value.toLowerCase())
-    );
-
-    setResultadosBusca(resultados);
+    const { name, value } = e.target;
+    setFiltros((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Função ao clicar no item
-  const handleSelectItem = (item) => {
-    setItemSelecionado(item);
-    setSearchItem(item.name); // opcional: preencher o input com o nome
-    setResultadosBusca([]); // limpa os resultados para fechar o dropdown
-  };
+  const handleRemoveItem = async (itemId) => {
+    try {
+      const res = await fetch(`${connect}/entregas/remover_item?${itemId}`, { method: 'DELETE' });
 
+      const data = await res.json();
 
-  const handleAddItem = () => {
-    if (!itemSelecionado || quantidade < 1) return;
+      if (!res.ok) {
+        throw new Error(data.message || 'Erro ao remover item.');
+      }
 
-    const novoItem = {
-      ...itemSelecionado,
-      quantidade: parseInt(quantidade),
-    };
-
-    setItensSelecionados(prev => [...prev, novoItem]);
-    setItemSelecionado(null);
-    setSearchItem('');
-    setQuantidade(1);
-  };
-
-  const handleDeleteItem = (item) => {
-    const novoItensSelecionados = itensSelecionados.filter(i => i.id !== item.id);
-    setItensSelecionados(novoItensSelecionados);
-  };
-
-  const handleDoar = () => {
-    if (!assistidoId || itensSelecionados.length === 0) {
-      alert('Selecione um assistido e adicione itens.');
-      return;
+      buscarDoacoes();
+    } catch (error) {
+      console.error('Erro ao remover item:', error.message);
     }
-
-    const payload = {
-      assistidoId,
-      itens: itensSelecionados,
-    };
-
-    console.log('Doação enviada:', payload);
-
-    setAssistidoId('');
-    setItensSelecionados([]);
-    setStep(1);
-  };
+  }
 
   return (
-    <div className="w-full px-16 mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-2 text-sky-700">Criar Doação</h1>
-
-      {/* Etapas do processo */}
-      <div className="relative flex items-center justify-between w-full max-w-3xl mx-auto px-4 mb-4">
-        {[
-          { id: 1, label: 'Assistido' },
-          { id: 2, label: 'Itens' },
-          { id: 3, label: 'Confirmar' }
-        ].map((etapa, i, arr) => {
-          const isCompleted = step > etapa.id;
-          const isActive = step === etapa.id;
-          const isLast = i === arr.length - 1;
-
-          return (
-            <div key={etapa.id} className="relative flex-1 flex flex-col items-center text-sm text-center">
-
-              {/* Linha entre círculos */}
-              {!isLast && (
-                <div className="absolute top-5 left-1/2 w-full h-1 -translate-y-1/2 z-0">
-                  <div className={`h-1 w-full ${isCompleted ? 'bg-blue-500' : 'bg-gray-200'}`} />
-                </div>
-              )}
-
-              {/* Círculo numerado ou check */}
-              <div
-                className={`z-10 relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all
-            ${isCompleted
-                    ? 'bg-blue-100 text-blue-600 border-blue-400'
-                    : isActive
-                      ? 'bg-sky-600 text-white border-sky-600'
-                      : 'bg-gray-100 text-gray-400 border-gray-300'
-                  }`}
-              >
-                {isCompleted ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 16 12">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M1 5.917 5.724 10.5 15 1.5" />
-                  </svg>
-                ) : (
-                  etapa.id
-                )}
-              </div>
-
-              {/* Texto da etapa */}
-              <span className={`mt-2 ${isActive ? 'text-sky-600 font-semibold' :
-                isCompleted ? 'text-blue-400' :
-                  'text-gray-400'
-                }`}>
-                {etapa.label}
-              </span>
+    <div className="h-screen flex flex-col">
+      <div className='px-4 pt-4'>
+        <div className='flex justify-between items-center'>
+          <h1 className="text-2xl font-bold mb-2 text-sky-700">Doações da Instituição</h1>
+          <div className='flex justify-center items-center gap-4'>
+            {/* Botão Nova Doação */}
+            <div className="flex flex-1 justify-end">
+              <ToolTip text="Nova Doação" position={'left'}>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className={` text-white px-6 py-2 rounded shadow bg-sky-600 hover:bg-sky-700`}
+                >
+                  <Plus />
+                </button>
+              </ToolTip>
             </div>
-          );
-        })}
+            {/* Filtros */}
+            <ToolTip text="Filtros" position={'bottom'}>
+              <div className={`bg-white shadow p-2 rounded cursor-pointer ${isFilterOpen ? 'shadow-none rounded-b-none' : ''}`} onClick={() => setIsFilterOpen(!isFilterOpen)}>
+                <ListFilter />
+              </div>
+            </ToolTip>
+          </div>
+        </div>
       </div>
 
-      <div className='mx-auto flex flex-col space-y-6 rounded-md bg-white shadow px-10 py-6'>
-        {/* Passo 1 - Assistido */}
-        {step === 1 && (
-          <div className='w-full'>
-            <label className="block font-medium mb-1">Escolha um assistido</label>
-            <select
-              value={assistidoId}
-              onChange={(e) => setAssistidoId(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">Selecione...</option>
-              {assistidosMock.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-            <div className='flex justify-end mt-4'>
-              <button
-                disabled={!assistidoId}
-                onClick={() => setStep(2)}
-                className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded disabled:opacity-50"
-              >
-                Próximo
-              </button>
-            </div>
+      <div className="flex-1 overflow-hidden custom-scrollbar p-4">
+        <div className="grid grid-cols-12 gap-4 h-full">
+          {/* Tabela de Doações */}
+          <div className={`${isFilterOpen ? 'col-span-9' : 'col-span-12'} transition-all overflow-auto`}>
+            <TableDefault data={doacoes} columns={columns} isLoading={loading} legenda={legenda} onEdit={(item) => handleEdit(item)} />
           </div>
-        )}
 
-        {/* Passo 2 - Itens */}
-        {step === 2 && (
-          <div className='w-full flex flex-col space-y-4 rounded-md px-6 py-4'>
-            <h2 className="text-2xl font-bold text-sky-700 text-center">Adicionar Itens</h2>
-            <div className='flex justify-between items-center gap-4'>
-              <div className="relative w-full">
-                <label className="block font-medium mb-1">Buscar item do estoque</label>
-                <input
-                  type="text"
-                  value={searchItem}
-                  onChange={(e) => handleSearchItem(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="Digite o nome do item..."
-                />
-                {resultadosBusca.length > 0 && (
-                  <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow max-h-60 overflow-y-auto">
-                    {resultadosBusca.map((item) => (
-                      <li
-                        key={item.id}
-                        onClick={() => handleSelectItem(item)}
-                        className="px-4 py-2 hover:bg-sky-100 cursor-pointer"
-                      >
-                        {item.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+          {/* Filtros laterais - Lista Vertical */}
+          {isFilterOpen && (
+            <div className="col-span-3 bg-white p-4 rounded-md shadow-md space-y-4 overflow-y-auto">
+              <h2 className="text-lg font-semibold border-b pb-2">Filtros</h2>
 
-              <div className="">
-                <label className="block font-medium mb-1">Quantidade</label>
-                <input
-                  type="number"
-                  value={quantidade}
-                  onChange={(e) => setQuantidade(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  min={1}
-                />
-              </div>
-
-              <div className="flex items-end gap-4 mt-6">
-                <button
-                  onClick={handleAddItem}
-                  className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded cursor-pointer"
-                  disabled={!itemSelecionado}
+              {/* Status */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Status</label>
+                <select
+                  name="status"
+                  value={filtros.status}
+                  onChange={handleChangeFilter}
+                  className="border rounded px-3 py-2"
                 >
-                  <IoIosAddCircle />
+                  <option value="">Todos</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="finalizada">Finalizada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              {/* Tipo de Entrega */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Tipo de Entrega</label>
+                <select
+                  name="tipo_entrega"
+                  value={filtros.tipo_entrega}
+                  onChange={handleChangeFilter}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Todos</option>
+                  <option value="retirar">Retirar</option>
+                  <option value="entregar">Entregar</option>
+                </select>
+              </div>
+
+              {/* Assistido */}
+              <div className="flex flex-col">
+                <SelectSearch
+                  data={assistidos}
+                  onSelect={handleChangeFilter}
+                  placeholder="Selecione um Assistido"
+                  label="Assistido"
+                  required
+                  name='selected_assistido'
+                />
+              </div>
+
+              {/* Data */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium mb-1">Data</label>
+                <input
+                  type="date"
+                  name="data"
+                  value={filtros.data}
+                  onChange={handleChangeFilter}
+                  className="border rounded px-3 py-2"
+                />
+              </div>
+
+              {/* Botão */}
+              <div className='pt-2 border-t'>
+                <button
+                  onClick={buscarDoacoes}
+                  className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
+                >
+                  Aplicar Filtros
                 </button>
               </div>
             </div>
-
-            {itensSelecionados.length > 0 && (
-              <div>
-                <h2 className="font-semibold mb-2">Itens para doação:</h2>
-                <ul className="space-y-1">
-                  {itensSelecionados.map((item, idx) => (
-                    <li key={idx} className="flex justify-between items-center border-b border-gray-300 px-1 py-2">
-                      <span>{item.name} (x{item.quantidade})</span>
-                      <ToolTip text={"Deletar"} position={"top"}>
-                        <div className='cursor-pointer text-red-500 hover:text-red-700 text-lg'>
-                          <IoMdTrash onClick={() => handleDeleteItem(item)} />
-                        </div>
-                      </ToolTip>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className='flex justify-between mt-4'>
-              <button
-                onClick={() => setStep(1)}
-                className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded"
-              >
-                Voltar
-              </button>
-              <button
-                disabled={itensSelecionados.length === 0}
-                onClick={() => setStep(3)}
-                className={`text-white px-6 py-2 rounded disabled:opacity-50 ${itensSelecionados.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-sky-700 bg-sky-600'}`}
-              >
-                Próximo
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Passo 3 - Confirmar */}
-        {step === 3 && (
-          <div className='w-full space-y-6'>
-            <h2 className='text-2xl font-bold text-sky-700 text-center'>Confirmar Doação</h2>
-            <p><strong>Assistido:</strong> {assistido?.name}</p>
-            <div>
-              <h3 className="font-semibold mb-2">Itens:</h3>
-              <ul className="space-y-1">
-                {itensSelecionados.map((item, idx) => (
-                  <li key={idx}>{item.name} (x{item.quantidade})</li>
-                ))}
-              </ul>
-            </div>
-            <div className='flex justify-between'>
-              <button
-                onClick={() => setStep(2)}
-                className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded"
-              >
-                Voltar
-              </button>
-              <button
-                onClick={handleDoar}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-2 rounded-md font-medium"
-              >
-                Confirmar Doação
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Modal Nova Doação */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <NewDonation
+          estoque={estoque}
+          assistidos={assistidos}
+          instituicaoId={instituicaoId}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            buscarDoacoes();
+          }}
+        />
+      </Modal>
+
+      {/* Modal Visualizar/Editar Doação */}
+      <ModalDoacao
+        isOpen={viewDonation}
+        onClose={() => {
+          setViewDonation(false)
+          setSelectedDonation([])
+        }}
+        doacao={selectedDonation}
+        onStatusChange={atualizarStatus}
+      />
     </div>
   );
 };
 
-export default TelaDoacao;
+export default DoacoesInstituicao;

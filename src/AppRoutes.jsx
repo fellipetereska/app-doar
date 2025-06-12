@@ -32,7 +32,7 @@ function AppRoutes() {
               {/* Rotas Instituição */}
               <Route path="/instituicao" element={<PrivateRoute requiredPermission={"instituicao"}><HomeInstituicao /></PrivateRoute>} />
               <Route path="/instituicao/estoque" element={<PrivateRoute requiredPermission={"instituicao"}><Estoque /></PrivateRoute>} />
-              <Route path="/instituicao/doar" element={<PrivateRoute requiredPermission={"instituicao"}><TelaDoacao /></PrivateRoute>} />
+              <Route path="/instituicao/doacoes" element={<PrivateRoute requiredPermission={"instituicao"}><TelaDoacao /></PrivateRoute>} />
               <Route path="/instituicao/assistidos" element={<PrivateRoute requiredPermission={"instituicao"}><Assistidos /></PrivateRoute>} />
               <Route path="/instituicao/lista-espera" element={<PrivateRoute requiredPermission={"instituicao"}><ListaEspera /></PrivateRoute>} />
               <Route path="/instituicao/configuracoes" element={<PrivateRoute requiredPermission={"instituicao"}><ConfiguracoesInstituicao /></PrivateRoute>} />

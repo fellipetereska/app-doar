@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-// Icones
-
 export function SearchInput({ onSearch, placeholder, term = '' }) {
 
   const [searchTerm, setSearchTerm] = useState(term);

@@ -32,7 +32,8 @@ const FormItem = ({ onAddItem, onCancel }) => {
       categoria_id: parseInt(item.categoriaId),
       subcategoria_id: parseInt(item.subcategoriaId),
       categoriaNome: categoria?.nome || '',
-      subcategoriaNome: subcategoria?.nome || ''
+      subcategoriaNome: subcategoria?.nome || '',
+      status: 'pendente'
     };
 
     onAddItem(itemCompleto);

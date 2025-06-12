@@ -6,14 +6,16 @@ export const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
 
 	const [user, setUser] = useState(() => {
-		const storedUser = localStorage.getItem('user');
-		return storedUser ? JSON.parse(storedUser) : null;
+		const storage = localStorage.getItem('doar');
+		const parsed = storage ? JSON.parse(storage) : null;
+		return parsed?.usuario || null;
 	});
 
 	const [isAuthenticated, setIsAuthenticated] = useState(() => {
-		return !!localStorage.getItem('user');
+		const storage = localStorage.getItem('doar');
+		const parsed = storage ? JSON.parse(storage) : null;
+		return !!parsed?.usuario;
 	});
-
 
 	// Função de Login
 	const signin = async (user) => {
@@ -23,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
 	// Função de Logout
 	const signout = () => {
-		localStorage.removeItem('user');
+		localStorage.removeItem('doar');
 		setUser(null);
 		setIsAuthenticated(false);
 	};

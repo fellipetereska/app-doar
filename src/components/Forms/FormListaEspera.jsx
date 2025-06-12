@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { connect } from '../../services/api';
 import { getInstituicaoId } from '../Auxiliares/helper';
 import FormItem from './FormItem';
-import { Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 const ListaEspera = ({ onSuccess, onEdit }) => {
   const [instituicaoId] = useState(getInstituicaoId());
@@ -14,6 +14,7 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
   const [selectedId, setSelectedId] = useState('');
   const [itens, setItens] = useState([]);
   const [mostrarFormItem, setMostrarFormItem] = useState(false);
+  const [ordemStatusAsc, setOrdemStatusAsc] = useState(true);
 
   const fetchItens = async (id) => {
     try {
@@ -28,8 +29,9 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
 
   const fetchAssistidos = async () => {
     try {
-      const res = await fetch(`${connect}/assistido?instituicaId=${instituicaoId}`);
-      const data = await res.json();
+      const queryParams = new URLSearchParams({ instituicaoId: instituicaoId }).toString();
+      const response = await fetch(`${connect}/assistido?${queryParams}`);
+      const data = await response.json();
       const assistidosDisponiveis = data.filter((assistido) => assistido.status_lista_espera === 0);
       setAssistidos(assistidosDisponiveis);
     } catch (err) {
@@ -42,6 +44,8 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
       fetchItens(onEdit.id);
     } else {
       fetchAssistidos();
+      setItens([]);
+      setSelectedId('');
     }
   }, [instituicaoId, onEdit]);
 
@@ -58,7 +62,7 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           itens: itens.map(item => ({
-            id_item: item.id_item || 0, // se vier da view
+            id_item: item.id_item || 0,
             status: item.status || "pendente",
             quantidade_solicitada: item.quantidade_solicitada || item.quantidade,
             quantidade_atendida: item.quantidade_atendida || 0,
@@ -138,6 +142,15 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
     setMostrarFormItem(false);
   };
 
+  const ordenarPorStatus = (ascendente) => {
+    const ordenado = [...itens].sort((a, b) => {
+      return ascendente
+        ? a.status.localeCompare(b.status)
+        : b.status.localeCompare(a.status);
+    });
+    setItens(ordenado);
+    setOrdemStatusAsc(ascendente);
+  };
 
   return (
     <div className="space-y-6">
@@ -187,24 +200,45 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
               <tr className="bg-gray-100">
                 <th className="px-2 py-1 border">Categoria</th>
                 <th className="px-2 py-1 border">Subcategoria</th>
-                <th className="px-2 py-1 border">Quantidade</th>
+                <th className="px-2 py-1 border">Quantidade Solicitada</th>
+                <th className="px-2 py-1 border">Quantidade Atendida</th>
                 <th className="px-2 py-1 border">Observação</th>
+                <th className="px-2 py-1 border text-center">
+                  <div className="flex gap-1 items-center justify-center">
+                    <span>Status</span>
+                    <button
+                      type="button"
+                      onClick={() => ordenarPorStatus(!ordemStatusAsc)}
+                      className={`
+                        text-xs
+                        ${ordemStatusAsc ? 'text-gray-700' : 'text-gray-400'}
+                        hover:text-gray-500 transition-colors
+                      `}
+                      title={`Ordenar por status ${ordemStatusAsc ? 'descendente' : 'ascendente'}`}
+                    >
+                      {ordemStatusAsc ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                  </div>
+                </th>
                 <th className="px-2 py-1 border">Ações</th>
               </tr>
             </thead>
             <tbody>
               {Array.isArray(itens) && itens.length > 0 ? (
                 itens.map((item, idx) => (
-                  <tr key={idx} className="text-center">
+                  <tr key={idx} className={`text-center ${item.status === 'atendida' ? 'text-green-400' : 'text-gray-700'}`}>
                     <td className="px-2 py-1 border">{item.categoria_nome || item.categoriaNome}</td>
                     <td className="px-2 py-1 border">{item.subcategoria_nome || item.subcategoriaNome}</td>
                     <td className="px-2 py-1 border">{item.quantidade_solicitada || item.quantidade}</td>
+                    <td className="px-2 py-1 border">{item.quantidade_atendida || '-'}</td>
                     <td className="px-2 py-1 border">{item.observacao || 'sem observação'}</td>
+                    <td className="px-2 py-1 border"><span className={`inline-block w-3 h-3 rounded-full ${item.status === 'pendente' ? 'bg-red-400' : item.status === 'atendida' ? 'bg-green-400' : 'bg-yellow-400'}`}></span></td>
                     <td className="px-2 py-1 border">
                       <button
                         type="button"
+                        disabled={item.status === 'atendida'}
                         onClick={() => removerItem(idx)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:hover:text-gray-300 transition-colors disabled:cursor-not-allowed"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -218,6 +252,22 @@ const ListaEspera = ({ onSuccess, onEdit }) => {
               )}
             </tbody>
           </table>
+          {/* Legenda */}
+          <div className="w-full px-2 text-xs text-gray-700 flex flex-wrap justify-end gap-2">
+            <span className='font-medium'>Legenda:</span>
+            <div className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full bg-green-400`}></span>
+              <span>Atendida</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full bg-yellow-400`}></span>
+              <span>Parcial</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full bg-red-400`}></span>
+              <span>Pendente</span>
+            </div>
+          </div>
         </div>
       </div>
 
