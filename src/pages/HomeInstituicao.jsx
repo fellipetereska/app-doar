@@ -119,9 +119,10 @@ const HomeInstituicao = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-4 py-2">
+    <div className="min-h-screen flex flex-col px-4 py-2 overflow-y-auto">
       <h1 className="text-2xl font-bold mb-4 text-sky-700">Home</h1>
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {" "}
         <Indicador
           title={`Doações Recebidas ${ano}`}
           value={indicadores.recebidasAno}
@@ -155,9 +156,9 @@ const HomeInstituicao = () => {
       </div>
       {/* Doações Recebidas */}
       <div className="mt-4">
-        <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
           <h2 className="text-lg font-bold text-sky-700">Doações Recebidas</h2>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 ">
             <div className="flex gap-2">
               <button
                 onClick={() => setStatusDonation("recebidas")}
@@ -201,35 +202,10 @@ const HomeInstituicao = () => {
               </div>
             </div>
           )}
-          
-          {/* <div
-            ref={scrollRefRecebidas}
-            className="flex gap-4 overflow-x-auto px-6 pb-2 custom-scrollbar scroll-smooth"
-          >
-            {doacoesRecebidas.length > 0 ? (
-              (statusDonation === "recebidas"
-                ? doacoesRecebidas
-                : doacoesAguardando
-              ).map((doacao) => (
-                <div
-                  key={doacao.doacao_id}
-                  className="min-w-[300px] max-w-[350px] h-[200px]"
-                >
-                  <CardDoacao doacao={doacao} onEdit={handleEdit} />
-                </div>
-              ))
-            ) : (
-              <>
-                <div className="w-full text-center h-24 flex justify-center items-center">
-                  <p className="text-gray-600">Nenhuma doação encontrada!.</p>
-                </div>
-              </>
-            )}
-          </div> */}
 
           <div
             ref={scrollRefRecebidas}
-            className="flex gap-4 overflow-x-auto px-6 pb-2 custom-scrollbar scroll-smooth"
+            className="flex gap-4 overflow-x-hidden px-6 pb-2 custom-scrollbar scroll-smooth "
           >
             {(statusDonation === "recebidas"
               ? doacoesRecebidas

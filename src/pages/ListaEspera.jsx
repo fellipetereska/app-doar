@@ -89,19 +89,19 @@ const ListaEspera = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-10 py-4">
-      <h1 className="text-2xl font-bold mb-4 text-sky-700">Lista de Espera</h1>
+    <div className="min-h-screen flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4">
+      <h1 className="text-xl sm:text-2xl font-bold text-sky-700">Lista de Espera</h1>
 
-      <div className="w-full flex justify-between items-center p-4">
-        <div className="flex-grow flex justify-center">
-          <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
+      <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 p-2 sm:p-4">
+        <div className="w-full sm:flex-grow">
+          <div className="w-full bg-white rounded-full py-2 px-4 sm:py-3 sm:px-8 shadow">
             <SearchInput placeholder="Buscar Assistido..." onSearch={handleSearch} />
           </div>
         </div>
 
-        <div className="ml-4">
+        <div className="w-full sm:w-auto flex justify-end">
           <button
-            className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-md"
+            className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 sm:px-8 sm:py-2 rounded-md text-sm sm:text-base"
             onClick={() => setIsModalOpen(true)}
           >
             + Novo

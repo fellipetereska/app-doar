@@ -63,7 +63,6 @@ const Estoque = () => {
     setEstoqueFiltrado(filtrado);
   };
 
-
   const handleAddItem = async (formData) => {
     setIsModalOpen(false);
     try {
@@ -101,39 +100,54 @@ const Estoque = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-10 py-4">
-      <div className=''>
-        <h1 className="text-2xl font-bold mb-4 text-sky-700">Estoque</h1>
+    <div className="min-h-screen flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4">
+      <div className='mb-4'>
+        <h1 className="text-xl sm:text-2xl font-bold text-sky-700">Estoque</h1>
       </div>
-      <div className="w-full flex justify-between items-center p-4">
-        {/* Barra de pesquisa (centralizada) */}
-        <div className="flex-grow flex justify-center">
-          <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
-            <SearchInput placeholder="Buscar item no estoque..." onSearch={handleSearch} />
+      
+      <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 p-2 sm:p-4">
+        {/* Barra de pesquisa */}
+        <div className="w-full sm:flex-grow">
+          <div className="w-full bg-white rounded-full py-2 px-4 sm:py-3 sm:px-8 shadow">
+            <SearchInput 
+              placeholder="Buscar item no estoque..." 
+              onSearch={handleSearch} 
+            />
           </div>
         </div>
 
-        {/* Botão (alinhado à direita) */}
-        <div className="ml-4">
-          <button className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-md" onClick={() => setIsModalOpen(true)}>
+        {/* Botão */}
+        <div className="w-full sm:w-auto flex justify-end">
+          <button 
+            className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 sm:px-8 sm:py-2 rounded-md text-sm sm:text-base"
+            onClick={() => setIsModalOpen(true)}
+          >
             + Novo
           </button>
         </div>
       </div>
-      <TableDefault
-        columns={columns}
-        data={estoqueFiltrado}
-        onEdit={handleEdit}
-      />
+      
+      <div className="overflow-x-auto">
+        <TableDefault
+          columns={columns}
+          data={estoqueFiltrado}
+          onEdit={handleEdit}
+        />
+      </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Adicionar Item ao Estoque" paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!">
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Adicionar Item ao Estoque" 
+        paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!"
+      >
         <FormEstoque
           onEdit={onEdit}
           onSubmit={handleAddItem}
           instituicaoId={instituicaoId}
         />
       </Modal>
-    </div >
+    </div>
   );
 };
 

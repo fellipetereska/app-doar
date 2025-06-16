@@ -56,18 +56,15 @@ const Assistidos = () => {
         ) : (
           <span className="text-gray-400 italic text-xs">Nenhum Projeto!</span>
         )
-
     },
   ];
 
   const [instituicaoId] = useState(getInstituicaoId());
-
   const [assistidos, setAssistidos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [assistidosFiltrados, setAssistidosFiltrados] = useState([]);
   const [selectedAssistido, setSelectedAssistido] = useState(null);
   const [isEdicao, setIsEdicao] = useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -109,7 +106,6 @@ const Assistidos = () => {
 
     setAssistidosFiltrados(filtrados);
   };
-
 
   const handleEdit = (item) => {
     setSelectedAssistido(item);
@@ -160,34 +156,54 @@ const Assistidos = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-10 py-4">
-      <div className=''>
-        <h1 className="text-2xl font-bold mb-4 text-sky-700">Assistido</h1>
+    <div className="min-h-screen flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4">
+      <div className='mb-4'>
+        <h1 className="text-xl sm:text-2xl font-bold text-sky-700">Assistidos</h1>
       </div>
-      <div className="w-full flex justify-between items-center p-4">
-        <div className="flex-grow flex justify-center">
-          <div className="w-full max-w-2xl bg-white rounded-full py-3 px-8 shadow">
-            <SearchInput placeholder="Buscar Assistido..." onSearch={handleSearch} />
+      
+      <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 p-2 sm:p-4">
+        {/* Barra de pesquisa */}
+        <div className="w-full sm:flex-grow">
+          <div className="w-full bg-white rounded-full py-2 px-4 sm:py-3 sm:px-8 shadow">
+            <SearchInput 
+              placeholder="Buscar Assistido..." 
+              onSearch={handleSearch} 
+            />
           </div>
         </div>
 
-        <div className="ml-4">
-          <button className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-md" onClick={() => setIsModalOpen(true)}>
+        {/* Botão Novo */}
+        <div className="w-full sm:w-auto flex justify-end">
+          <button 
+            className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 sm:px-8 sm:py-2 rounded-md text-sm sm:text-base"
+            onClick={() => setIsModalOpen(true)}
+          >
             + Novo
           </button>
         </div>
       </div>
-      <TableDefault
-        columns={columns}
-        data={assistidosFiltrados}
-        onEdit={(item) => handleEdit(item)}
-        isLoading={loading}
-      />
+      
+      <div className="overflow-x-auto">
+        <TableDefault
+          columns={columns}
+          data={assistidosFiltrados}
+          onEdit={(item) => handleEdit(item)}
+          isLoading={loading}
+        />
+      </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedAssistido([]); setIsEdicao(false); }} title="Cadastrar um Assistido">
-        <FormAssistido onSubmit={handleAddItem} selectedAssistido={selectedAssistido} instituicao_id={instituicaoId} />
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => { setIsModalOpen(false); setSelectedAssistido([]); setIsEdicao(false); }} 
+        title="Cadastrar um Assistido"
+      >
+        <FormAssistido 
+          onSubmit={handleAddItem} 
+          selectedAssistido={selectedAssistido} 
+          instituicao_id={instituicaoId} 
+        />
       </Modal>
-    </div >
+    </div>
   );
 };
 

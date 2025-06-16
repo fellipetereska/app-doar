@@ -89,6 +89,8 @@ const ModalDoacao = ({ doacao, setDoacao, isOpen, onClose, fetchDonations, aceit
     }
   };
 
+  
+
   const openImageModal = (imagens) => {
     setGaleria(imagens);
     setIndexImagem(0);

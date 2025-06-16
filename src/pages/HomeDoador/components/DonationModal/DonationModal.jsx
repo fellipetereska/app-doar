@@ -403,12 +403,24 @@ const DonationModal = ({ isOpen, onClose, company, userLocation, userId }) => {
         isOpen={isOpen}
         onRequestClose={handleClose}
         contentLabel={`Doação para ${company?.name}`}
-        className="outline-none"
+        className="outline-none  px-4"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-[1000] transition-opacity duration-300"
+        style={{
+          content: {
+            position: "relative",
+            inset: "auto",
+            width: "90%",
+            maxWidth: "600px",
+            margin: "0 auto",
+            transform: "none",
+            left: "0",
+            right: "0",
+          },
+        }}
         closeTimeoutMS={300}
         ariaHideApp={false}
       >
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xl w-full mx-4 my-8 max-w-2xl max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 rounded-t-xl">
             <div className="flex justify-between items-center">
               <div>
