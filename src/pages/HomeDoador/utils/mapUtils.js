@@ -14,11 +14,10 @@ export const getIconSize = (zoom) => {
   if (zoom <= 5) return [15, 15];
   if (zoom <= 8) return [25, 25];
   if (zoom <= 12) return [35, 35];
-  if (zoom <= 15) return [45, 45];
-  return [55, 55];
+  if (zoom <= 15) return [65, 65];
+  return [85, 85];
 };
 
-// Configuração inicial do ícone padrão do Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
