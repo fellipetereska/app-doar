@@ -1,22 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import useDonation from "./hooks/useDonation";
-import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { api } from '../../services/api';
+import { connect } from "../../services/api";
+import { connectPhoto } from "../../services/api";
 
 import LocationModal from "./components/LocationModal/LocationModal";
 import CompanyModal from "./components/CompanyModal/CompanyModal";
 import DonationModal from "./components/DonationModal/DonationModal";
-import DonationConfirmation from "./components/DonationConfirmation/DonationConfirmation";
+import DonationConfirmation from "./components/DonationModal/DonationConfirmation/DonationConfirmation";
 import { createCustomIcon, getIconSize } from "./utils/mapUtils";
-import companies from "./constants/companies";
-import CenterMap from "./components/MapControls/CenterMap";
+import MapController from "./components/MapControls/MapController";
 import MapEvents from "./components/MapControls/MapEvents";
+import placeholderImage from "../../media/logo.png";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -27,13 +28,23 @@ L.Icon.Default.mergeOptions({
 
 const HomeDoador = () => {
   const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.institutionModalOpen) {
+      setSelectedCompany(location.state.selectedInstitution);
+      setModalIsOpen(true);
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   const {
     userLocation,
     showCepModal,
     cep,
     loadingLocation,
-    mapCenter,
     zoomLevel,
     modalIsOpen,
     donationModalIsOpen,
@@ -51,7 +62,59 @@ const HomeDoador = () => {
     setModalIsOpen,
     setSelectedCompany,
   } = useDonation();
+  const [institutions, setInstitutions] = useState([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(true);
+  const [hasInitialZoomed, setHasInitialZoomed] = useState(false);
 
+  useEffect(() => {
+    if (userLocation) {
+      setHasInitialZoomed(false); 
+    }
+  }, [userLocation]);
+
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        const response = await fetch(`${connect}/instituicao`);
+        if (!response.ok) {
+          throw new Error("Erro na requisição");
+        }
+        const data = await response.json();
+        setInstitutions(data);
+      } catch (error) {
+        console.error("Erro ao buscar instituições:", error);
+        toast.error("Erro ao carregar instituições");
+      } finally {
+        setLoadingInstitutions(false);
+      }
+    };
+
+    fetchInstitutions();
+  }, []);
+
+  if (isAuthenticated && user?.role === "instituicao") {
+    return <Navigate to="/instituicao" replace />;
+  }
+
+  const handleLoginRedirect = () => {
+    localStorage.setItem(
+      "loginRedirectState",
+      JSON.stringify({
+        institutionModalOpen: true,
+        selectedInstitution: selectedCompany,
+      })
+    );
+
+    navigate("/login", {
+      state: {
+        from: location,
+        restoreState: {
+          institutionModalOpen: true,
+          selectedInstitution: selectedCompany,
+        },
+      },
+    });
+  };
 
   if (isAuthenticated && user?.role === "instituicao") {
     return <Navigate to="/instituicao" replace />;
@@ -82,14 +145,16 @@ const HomeDoador = () => {
       )}
 
       <MapContainer
-        center={mapCenter}
-        zoom={zoomLevel}
+        center={[-14.235, -51.9253]}
+        zoom={4}
         className="w-full h-full"
-        zoomControl={true}
+        zoomControl={false}
       >
-        <MapEvents onZoom={(zoom) => setZoomLevel(zoom)} />
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <CenterMap center={mapCenter} zoom={zoomLevel} animate={true} />
+        <MapEvents onZoom={(zoom) => setZoomLevel(zoom)} />
+
+        <MapController center={userLocation} zoom={zoomLevel} />
+
         {userLocation && (
           <Marker
             position={userLocation}
@@ -109,19 +174,43 @@ const HomeDoador = () => {
             <Popup>Sua localização</Popup>
           </Marker>
         )}
-        {companies.map((company) => (
-          <Marker
-            key={company.id}
-            position={[company.lat, company.lng]}
-            icon={createCustomIcon(company.image, getIconSize(zoomLevel))}
-            eventHandlers={{
-              click: () => {
-                setSelectedCompany(company);
-                setModalIsOpen(true);
-              },
-            }}
-          />
-        ))}
+        {!loadingInstitutions &&
+          institutions.map((institution) => {
+            const imageUrl = institution.logo_path
+              ? `${connectPhoto}/uploads/${institution.logo_path}`
+              : placeholderImage;
+
+            return (
+              <Marker
+                key={institution.id}
+                position={[institution.latitude, institution.longitude]}
+                icon={createCustomIcon(imageUrl, getIconSize(zoomLevel))}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedCompany({
+                      id: institution.id,
+                      name: institution.nome,
+                      lat: institution.latitude,
+                      lng: institution.longitude,
+                      image: imageUrl,
+                      description: institution.descricao,
+                      donationInfo: {
+                        address: `${institution.logradouro} ${institution.endereco}, ${institution.numero} - ${institution.bairro}, ${institution.cidade} - ${institution.uf}`,
+                        items:
+                          institution.categorias?.flatMap(
+                            (cat) => cat.subcategorias
+                          ) || [],
+                      },
+                      contact: {
+                        phone: institution.telefone,
+                      },
+                    });
+                    setModalIsOpen(true);
+                  },
+                }}
+              />
+            );
+          })}
       </MapContainer>
 
       <CompanyModal
@@ -135,6 +224,8 @@ const HomeDoador = () => {
           closeModal();
           setTimeout(() => openDonationModal(), 100);
         }}
+        isAuthenticated={isAuthenticated}
+        onLoginRedirect={handleLoginRedirect}
         className="z-[1002]"
       />
 
@@ -146,20 +237,8 @@ const HomeDoador = () => {
         }}
         company={selectedCompany}
         userLocation={userLocation}
+        userId={user?.id}
         className="z-[1002]"
-      />
-
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
       />
 
       {showConfirmation && (
@@ -171,6 +250,7 @@ const HomeDoador = () => {
           }}
         />
       )}
+
     </div>
   );
 };

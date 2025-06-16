@@ -1,8 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
-import { FiX, FiGift, FiClock, FiMapPin, FiPhone, FiCheck } from "react-icons/fi";
+import { connect } from "../../../../services/api";
+import { FiX, FiGift, FiMapPin, FiPhone, FiCheck } from "react-icons/fi";
 
-const CompanyModal = ({ isOpen, onClose, company, onDonate }) => {
+const CompanyModal = ({
+  isOpen,
+  onClose,
+  company,
+  onDonate,
+  isAuthenticated,
+  onLoginRedirect,
+}) => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (company) {
+      const fetchCategories = async () => {
+        try {
+          const response = await fetch(`${connect}/categoria?id=${company.id}`);
+          if (!response.ok) {
+            throw new Error("Erro ao buscar categorias");
+          }
+          const data = await response.json();
+          setCategories(data);
+        } catch (error) {
+          console.error("Erro ao buscar categorias:", error);
+        }
+      };
+
+      fetchCategories();
+    }
+  }, [company]);
+
   if (!company) return null;
 
   return (
@@ -10,81 +39,145 @@ const CompanyModal = ({ isOpen, onClose, company, onDonate }) => {
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Informações da Instituição"
-      className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 sm:mx-auto relative shadow-lg z-[1001] outline-none"
-      overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]"
+      className="bg-white p-6 rounded-xl max-w-2xl w-full mx-4 sm:mx-auto relative shadow-2xl z-[1001] outline-none border border-gray-100"
+      overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] backdrop-blur-sm"
       appElement={document.getElementById("root")}
       closeTimeoutMS={200}
     >
-      <div className="space-y-4">
+      <div className="space-y-6">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition p-1 rounded-full hover:bg-gray-100"
+          aria-label="Fechar modal"
         >
           <FiX size={24} />
         </button>
 
-        <div className="flex items-start space-x-4">
-          <img
-            src={company.image}
-            alt={company.name}
-            className="w-24 h-24 object-cover rounded-md"
-          />
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">{company.name}</h2>
-            <p className="text-gray-600 mt-1">{company.description}</p>
+        <div className="relative bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full opacity-20 -mr-16 -mt-16"></div>
+
+          <div className="relative flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex-shrink-0 relative group">
+              <div className="absolute inset-0 bg-blue-200 rounded-xl opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
+              <img
+                src={company.image}
+                alt={company.name}
+                className=" h-24 object-cover rounded-xl shadow-md border-2 border-white ring-2 ring-blue-100 transform group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/96?text=Logo";
+                }}
+              />
+            </div>
+
+            <div className="text-center sm:text-left space-y-2">
+              <div>
+                <h2 className="text-2xl font-semibold leading-tight bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 inline-block">
+                  {company.name}
+                </h2>
+              </div>
+              <div>
+                <h2 className="text-xl text-gray-800 leading-tight bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 inline-block">
+                  {company.description}
+                </h2>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="bg-blue-50 p-4 rounded-md">
-          <h3 className="font-semibold text-blue-800 flex items-center">
-            <FiGift className="mr-2" /> Itens que esta instituição aceita:
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-100">
+          <h3 className="font-semibold text-blue-900 flex items-center text-lg">
+            <FiGift className="mr-2 text-blue-700" /> Itens que esta instituição
+            aceita:
           </h3>
-          <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {company.donationInfo.items.map((item, index) => (
-              <li key={index} className="flex items-start">
-                <FiCheck className="text-green-500 mt-1 mr-2 flex-shrink-0" />
-                <span className="text-gray-700">{item}</span>
+          <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {categories.flatMap((category) => (
+              <li
+                key={`${category.id}`}
+                className="flex items-start bg-white/80 backdrop-blur-sm p-2 rounded-lg border border-gray-100"
+              >
+                <FiCheck className="text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 font-medium">
+                  {category.nome}
+                </span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-start">
-            <FiClock className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
+        <div className="space-y-4">
+          <div className="flex items-start bg-gray-50 p-3 rounded-lg">
+            <div className="bg-blue-100 p-2 rounded-lg mr-3">
+              <FiMapPin className="text-blue-700" size={18} />
+            </div>
             <div>
-              <h4 className="font-medium text-gray-700">Horário para doação</h4>
-              <p className="text-gray-600">{company.donationInfo.hours}</p>
+              <h4 className="font-medium text-gray-800">Local</h4>
+              <p className="text-gray-600 mt-1">
+                {company.donationInfo.address}
+              </p>
+              {company.donationInfo.mapLink && (
+                <a
+                  href={company.donationInfo.mapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-blue-600 hover:text-blue-800 text-sm mt-1 transition"
+                >
+                  Ver no mapa
+                </a>
+              )}
             </div>
           </div>
 
-          <div className="flex items-start">
-            <FiMapPin className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-gray-700">Local</h4>
-              <p className="text-gray-600">{company.donationInfo.address}</p>
+          <div className="flex items-start bg-gray-50 p-3 rounded-lg">
+            <div className="bg-blue-100 p-2 rounded-lg mr-3">
+              <FiPhone className="text-blue-700" size={18} />
             </div>
-          </div>
-
-          <div className="flex items-start">
-            <FiPhone className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-gray-700">Contato</h4>
-              <p className="text-gray-600">
-                {company.contact.email}
-                <br />
-                {company.contact.phone}
+              <h4 className="font-medium text-gray-800">Contato</h4>
+              <p className="text-gray-600 mt-1">
+                {company.contact.phone && (
+                  <a
+                    href={`tel:${company.contact.phone.replace(/\D/g, "")}`}
+                    className="hover:text-blue-600 transition"
+                  >
+                    {company.contact.phone}
+                  </a>
+                )}
               </p>
             </div>
           </div>
         </div>
 
-        <button
-          onClick={onDonate}
-          className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium transition flex items-center justify-center"
-        >
-          Realizar Doação
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+         
+          {isAuthenticated ? (
+            <button
+              onClick={onDonate}
+              className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 px-6 rounded-lg font-medium transition flex items-center justify-center shadow-md hover:shadow-lg"
+            >
+              Realizar Doação
+            </button>
+          ) : (
+            <div className="flex-1 relative">
+              <button
+                disabled
+                className="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-medium flex items-center justify-center cursor-not-allowed"
+              >
+                Realizar Doação
+              </button>
+              <div className="absolute -top-8 left-0 w-full text-center">
+                <span className="bg-white text-red-500 text-xs font-medium px-2 py-1 rounded border border-red-200 shadow-sm">
+                  Você precisa estar logado para doar
+                </span>
+              </div>
+              <button
+                onClick={onLoginRedirect}
+                className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition flex items-center justify-center"
+              >
+                Fazer Login
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   );
