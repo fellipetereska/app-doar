@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { systemPrompt, initialMessages } from "./ModelTrainingIA";
 
 const Chatbot = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);

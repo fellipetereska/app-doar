@@ -1,5 +1,5 @@
 // Sidebar.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { createContext, useState, useContext } from "react";
 import {
   Home,
@@ -7,7 +7,6 @@ import {
   HeartHandshake,
   Users,
   Clock,
-  BarChart2,
   ChevronFirst,
   ChevronLast,
   Settings,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 
 import ToolTip from "./Auxiliares/ToolTip";
-import logo from '../media/logo.png';
+import logo from "../media/logo.png";
 import { Link, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -23,30 +22,54 @@ import { useNavigate } from "react-router-dom";
 const SidebarContext = createContext();
 
 export default function Sidebar() {
-
   const { user, signout } = useAuth();
 
   const navigate = useNavigate();
 
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(() => {
+    return window.innerWidth > 768;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setExpanded(window.innerWidth > 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const menuItems = [
     { label: "Home", icon: <Home />, path: "/instituicao" },
     { label: "Estoque", icon: <Boxes />, path: "/instituicao/estoque" },
-    { label: "Doações", icon: <HeartHandshake />, path: "/instituicao/doacoes" },
+    {
+      label: "Doações",
+      icon: <HeartHandshake />,
+      path: "/instituicao/doacoes",
+    },
     { label: "Assistidos", icon: <Users />, path: "/instituicao/assistidos" },
-    { label: "Lista de Espera", icon: <Clock />, path: "/instituicao/lista-espera" },
+    {
+      label: "Lista de Espera",
+      icon: <Clock />,
+      path: "/instituicao/lista-espera",
+    },
   ];
 
   const logout = () => {
     navigate("/login");
     signout();
-  }
+  };
 
   return (
-    <aside className="h-screen">
+    <aside className="h-100">
       <nav className="h-full flex flex-col bg-white border-r shadow-sm">
-        <div className="p-4 pb-2 flex justify-between items-center border-b mb-4 cursor-pointer select-none " onClick={() => navigate("/instituicao")}>
+        <div
+          className="p-4 pb-2 flex justify-between items-center border-b mb-4 cursor-pointer select-none "
+          onClick={() => navigate("/instituicao")}
+        >
           <div></div>
           <img
             src={logo}
@@ -62,7 +85,11 @@ export default function Sidebar() {
               onClick={() => setExpanded((prev) => !prev)}
               className="p-1.5 rounded-lg hover:bg-gray-100"
             >
-              {expanded ? <ChevronFirst size={18} color="#6b7280" /> : <ChevronLast size={18} color="#6b7280" />}
+              {expanded ? (
+                <ChevronFirst size={18} color="#6b7280" />
+              ) : (
+                <ChevronLast size={18} color="#6b7280" />
+              )}
             </button>
           </ToolTip>
         </div>
@@ -70,29 +97,49 @@ export default function Sidebar() {
         <SidebarContext.Provider value={{ expanded }}>
           <ul className="flex-1 px-3 space-y-2">
             {menuItems.map((item) => (
-              <SidebarItem key={item.label} icon={item.icon} text={item.label} path={item.path} />
+              <SidebarItem
+                key={item.label}
+                icon={item.icon}
+                text={item.label}
+                path={item.path}
+              />
             ))}
           </ul>
         </SidebarContext.Provider>
 
         {/* Rodapé */}
         <div className="border-t px-2 py-4">
-          <div className={`flex items-center ${expanded ? "gap-3" : "flex-col justify-center"}`}>
+          <div
+            className={`flex items-center ${
+              expanded ? "gap-3" : "flex-col justify-center"
+            }`}
+          >
             {expanded ? (
               <>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{user.nome}</p>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {user.nome}
+                  </p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                   <ToolTip text="Configurações" position="top">
-                    <button type="button" onClick={() => navigate("/instituicao/configuracoes")}>
-                      <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <button
+                      type="button"
+                      onClick={() => navigate("/instituicao/configuracoes")}
+                    >
+                      <Settings
+                        size={16}
+                        className="text-gray-400 cursor-pointer hover:text-gray-700"
+                      />
                     </button>
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
                     <button type="button" onClick={logout}>
-                      <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                      <LogOut
+                        size={16}
+                        className="text-gray-400 cursor-pointer hover:text-gray-700"
+                      />
                     </button>
                   </ToolTip>
                 </div>
@@ -100,16 +147,27 @@ export default function Sidebar() {
             ) : (
               <>
                 <div
-                  className={`flex ${expanded ? "justify-between px-1" : "justify-center"} items-center gap-4`}
+                  className={`flex ${
+                    expanded ? "justify-between px-1" : "justify-center"
+                  } items-center gap-4`}
                 >
                   <ToolTip text="Configurações" position="top">
-                    <button type="button" onClick={() => navigate("/instituicao/configuracoes")}>
-                      <Settings size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <button
+                      type="button"
+                      onClick={() => navigate("/instituicao/configuracoes")}
+                    >
+                      <Settings
+                        size={16}
+                        className="text-gray-400 cursor-pointer hover:text-gray-700"
+                      />
                     </button>
                   </ToolTip>
                   <ToolTip text="Sair" position="right">
                     <button type="button" onClick={logout}>
-                      <LogOut size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                      <LogOut
+                        size={16}
+                        className="text-gray-400 cursor-pointer hover:text-gray-700"
+                      />
                     </button>
                   </ToolTip>
                 </div>
@@ -117,10 +175,10 @@ export default function Sidebar() {
             )}
           </div>
 
-
-          <p className="text-xs text-gray-400 text-center mt-3 select-none">v 1.0.0</p>
+          <p className="text-xs text-gray-400 text-center mt-3 select-none">
+            v 1.0.0
+          </p>
         </div>
-
       </nav>
     </aside>
   );
@@ -136,7 +194,11 @@ function SidebarItem({ icon, text, path }) {
     <Link to={path}>
       <div
         className={`flex items-center p-2 cursor-pointer rounded transition-colors
-          ${isActive ? "border-l-4 border-primary text-primary" : "text-gray-600 hover:text-gray-800"}`}
+          ${
+            isActive
+              ? "border-l-4 border-primary text-primary"
+              : "text-gray-600 hover:text-gray-800"
+          }`}
       >
         <span className="text-xl">{icon}</span>
         {expanded && (

@@ -100,12 +100,6 @@ const Step3Confirmation = ({
 
         {deliveryMethod === "take" ? (
           <>
-            <div className="mb-4">
-              <h5 className="font-medium text-gray-700 mb-1">
-                Horário para doação:
-              </h5>
-              <p className="text-gray-600">{company?.donationInfo.hours}</p>
-            </div>
             <div>
               <h5 className="font-medium text-gray-700 mb-1">Endereço:</h5>
               <p className="text-gray-600">{company?.donationInfo.address}</p>
