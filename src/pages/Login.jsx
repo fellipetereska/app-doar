@@ -16,6 +16,9 @@ const Login = () => {
   const [modo, setModo] = useState("login"); // "login" ou "registro"
   const [tipoCadastro, setTipoCadastro] = useState("doador");
 
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+
   const tipoDocumentoOptions = [
     { value: "cpf", label: "CPF" },
     { value: "rg", label: "RG" },
@@ -83,15 +86,21 @@ const Login = () => {
         throw new Error(data.message || "Erro ao fazer login");
       }
 
+      // Restaura o estado salvo ou usa o estado da location
+      const restoreState =
+        location.state?.restoreState ||
+        JSON.parse(localStorage.getItem("loginRedirectState")) ||
+        {};
+
+      // Limpa o estado salvo
+      localStorage.removeItem("loginRedirectState");
+
       const destino =
         data.usuario.role === "instituicao" ? "/instituicao" : "/";
-      navigate(destino);
 
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, {
-        state: {
-          restoreState: location.state?.restoreState || null,
-        },
+      // Aqui está a correção - remova a navegação duplicada
+      navigate(destino, {
+        state: restoreState, // Restaura o estado
       });
 
       const dados = {
@@ -121,61 +130,97 @@ const Login = () => {
     }
   };
 
-  const handleRegister = async () => {
-    // const requiredFields = ["nome", "email", "senha", "telefone", "documento", "endereco"];
-    // const missing = requiredFields.some((f) => !form[f]);
-    // if (missing) return toast.warn("Preencha todos os dados!");
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
+  const handleRegister = async () => {
     const endpoint =
       tipoCadastro === "instituicao"
         ? "instituicao/registrar"
         : "usuario/registrar";
 
-    const newData =
-      tipoCadastro === "instituicao"
-        ? {
-          usuario: {
-            nome: form.nome_usuario,
-            email: form.email,
-            senha: form.senha,
-            tipo_documento: form.tipo_documento,
-            tipo: "administrador",
-            documento: form.documento,
-          },
-          instituicao: {
-            nome: form.nome,
-            cnpj: form.documento,
-            telefone: form.telefone,
-            cep: form.cep,
-            logradouro: form.logradouro,
-            endereco: form.endereco,
-            numero: form.numero,
-            complemento: form.complemento,
-            bairro: form.bairro,
-            cidade: form.cidade,
-            uf: form.uf,
-            descricao: form.descricao,
-          },
+    try {
+      if (tipoCadastro === "instituicao") {
+        const formData = new FormData();
+
+        formData.append("usuario[nome]", form.nome_usuario);
+        formData.append("usuario[email]", form.email);
+        formData.append("usuario[senha]", form.senha);
+        formData.append("usuario[tipo_documento]", form.tipo_documento);
+        formData.append("usuario[documento]", form.documento);
+
+        formData.append("instituicao[nome]", form.nome);
+        formData.append("instituicao[cnpj]", form.cnpj);
+        formData.append("instituicao[cep]", form.cep);
+        formData.append("instituicao[logradouro]", form.logradouro);
+        formData.append("instituicao[endereco]", form.endereco);
+        formData.append("instituicao[numero]", form.numero);
+        formData.append("instituicao[complemento]", form.complemento);
+        formData.append("instituicao[bairro]", form.bairro);
+        formData.append("instituicao[cidade]", form.cidade);
+        formData.append("instituicao[uf]", form.uf);
+        formData.append("instituicao[telefone]", form.telefone);
+        formData.append("instituicao[descricao]", form.descricao);
+
+        if (logoFile) {
+          formData.append("logo", logoFile);
         }
-        : {
-          ...form,
-          role: tipoCadastro,
+
+        const response = await fetch(`${connect}/${endpoint}`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const erro = await response.json();
+          throw new Error(erro.message || "Erro ao registrar instituição");
+        }
+      } else {
+
+        const doadorData = {
+          nome: form.nome,
+          email: form.email,
+          senha: form.senha,
+          telefone: form.telefone,
+          tipo_documento: form.tipo_documento,
+          documento: form.documento,
+          cep: form.cep,
+          logradouro: form.logradouro,
+          endereco: form.endereco,
+          numero: form.numero,
+          complemento: form.complemento,
+          bairro: form.bairro,
+          cidade: form.cidade,
+          uf: form.uf,
+          role: "doador", 
         };
 
-    try {
-      const response = await fetch(`${connect}/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newData),
-      });
+        const response = await fetch(`${connect}/${endpoint}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(doadorData),
+        });
 
-      if (!response.ok) {
-        const erro = await response.json();
-        throw new Error(erro.message || "Erro ao registrar");
+        if (!response.ok) {
+          const erro = await response.json();
+          throw new Error(erro.message || "Erro ao registrar doador");
+        }
       }
 
       handleClear();
-
+      setLogoFile(null);
+      setLogoPreview(null);
       toast.success("Cadastro realizado com sucesso!");
       setModo("login");
     } catch (error) {
@@ -207,20 +252,22 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setTipoCadastro("doador")}
-                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "doador"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600"
-                  }`}
+                className={`pb-2 font-semibold border-b-2 ${
+                  tipoCadastro === "doador"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600"
+                }`}
               >
                 Sou Doador
               </button>
               <button
                 type="button"
                 onClick={() => setTipoCadastro("instituicao")}
-                className={`pb-2 font-semibold border-b-2 ${tipoCadastro === "instituicao"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600"
-                  }`}
+                className={`pb-2 font-semibold border-b-2 ${
+                  tipoCadastro === "instituicao"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600"
+                }`}
               >
                 Sou Instituição
               </button>
@@ -325,6 +372,42 @@ const Login = () => {
 
               {tipoCadastro === "instituicao" && (
                 <>
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Logo da Instituição
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Preview do logo"
+                        className="h-16 w-16 rounded-full object-cover border border-gray-300"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500 text-xs">Sem logo</span>
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        id="logo"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="logo"
+                        className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        Selecionar Logo
+                      </label>
+                      <p className="mt-1 text-xs text-gray-500">
+                        PNG, JPG, GIF até 5MB
+                      </p>
+                    </div>
+                  </div>
                   <div className="w-full flex itens-center justify-between gap-4">
                     <Input
                       label="Nome da Instituição"

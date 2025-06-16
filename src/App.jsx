@@ -12,8 +12,8 @@ function App() {
       <Router>
         <AppRoutes />
       </Router>
-
       <ToastContainer autoClose={3000} position="top-right" />
+
     </AuthProvider>
   );
 }

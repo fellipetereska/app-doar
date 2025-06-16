@@ -1,9 +1,8 @@
 import { React, useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-
+import { FiX } from "react-icons/fi";
 import logo from "../media/logo.png";
-import { SearchInput } from "./Inputs/searchInput";
 import {
   FaUserCircle,
   FaCog,
@@ -28,11 +27,13 @@ function Navbar() {
   }, [isAuthenticated]);
 
   const logout = () => {
+    localStorage.removeItem("userCoordinates");
+    localStorage.removeItem("userAddress");
+    localStorage.removeItem("loginRedirectState"); 
     localStorage.clear();
     signout();
-    navigate("/");
+    navigate("/login", { replace: true });
   };
-
   const openSettingsModal = () => {
     setIsMenuOpen(false);
     setSettingsModalOpen(true);
@@ -40,18 +41,12 @@ function Navbar() {
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-6 py-2 z-[1000] transition-all duration-300 backdrop-blur-sm `}
-      >
+      <nav className="fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-6 py-2 z-[1000] transition-all duration-300 backdrop-blur-sm">
         <div
           className="flex items-center p-2 cursor-pointer group bg-white rounded-lg shadow-sm"
           onClick={() => navigate("/")}
         >
-          <img src={logo} alt="Logo" className="w-20 object-contain " />
-        </div>
-
-        <div className="flex-grow max-w-xl h-[38px] flex items-center mx-2 md:mx-4 bg-white/90 backdrop-blur-sm shadow-sm rounded-full px-4 transition-all duration-300 hover:shadow-md">
-          <SearchInput placeholder="Buscar Instituição..." />
+          <img src={logo} alt="Logo" className="w-20 object-contain" />
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
@@ -140,7 +135,7 @@ function Navbar() {
       <SettingsModal
         isOpen={settingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
-        user={user}
+        userId={user?.id}
       />
     </>
   );

@@ -2,24 +2,22 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const useDonation = () => {
-  // Estado para gerenciar localização
   const [userLocation, setUserLocation] = useState(null);
   const [showCepModal, setShowCepModal] = useState(true);
   const [cep, setCep] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [mapCenter, setMapCenter] = useState([-14.235, -51.9253]);
-  const [zoomLevel, setZoomLevel] = useState(4);
+  const [zoomLevel, setZoomLevel] = useState(4); 
 
-  // Estado para gerenciar modais
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [donationModalIsOpen, setDonationModalIsOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
 
-  // Estado para confirmação
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Buscar localização pelo CEP
-  const fetchLocationByCEP = async () => {
+  const [hasLocation, setHasLocation] = useState(false);
+
+   const fetchLocationByCEP = async () => {
     if (!cep || cep.replace(/\D/g, "").length !== 8) {
       toast.error("Digite um CEP válido (8 dígitos)");
       return;
@@ -35,7 +33,7 @@ const useDonation = () => {
         return;
       }
 
-      const fullAddress = `${data.logradouro}, ${data.bairro}, ${data.localidade}, ${data.uf}, Brasil`;
+      const fullAddress = `${data.logradouro || ''}, ${data.bairro || ''}, ${data.localidade || ''}, ${data.uf || ''}, Brasil`;
 
       const geoResponse = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
@@ -58,6 +56,7 @@ const useDonation = () => {
       setZoomLevel(13);
       setUserLocation(newCenter);
       setShowCepModal(false);
+      setHasLocation(true); // Adicione esta linha
     } catch (error) {
       toast.error("Erro ao buscar localização");
       console.error("Erro ao buscar CEP:", error);
@@ -85,7 +84,7 @@ const useDonation = () => {
         setZoomLevel(15);
         setShowCepModal(false);
         setLoadingLocation(false);
-
+        setHasLocation(true); 
       },
       (error) => {
         toast.error(
@@ -102,7 +101,6 @@ const useDonation = () => {
     );
   };
 
-  // Gerenciamento de modais
   const openModal = (company) => {
     setSelectedCompany(company);
     setModalIsOpen(true);
@@ -120,26 +118,30 @@ const useDonation = () => {
     setDonationModalIsOpen(false);
   };
 
-  // Resetar fluxo de doação
   const resetDonationFlow = () => {
     setDonationModalIsOpen(false);
     setShowConfirmation(false);
   };
 
-  // Efeito para carregar localização salva
-  useEffect(() => {
+    useEffect(() => {
     const savedLocation = localStorage.getItem("userLocation");
     if (savedLocation) {
-      const location = JSON.parse(savedLocation);
-      setUserLocation(location);
-      setMapCenter(location);
-      setZoomLevel(15);
-      setShowCepModal(false);
+      try {
+        const location = JSON.parse(savedLocation);
+        if (Array.isArray(location) && location.length === 2) {
+          setUserLocation(location);
+          setMapCenter(location);
+          setZoomLevel(15); 
+          setHasLocation(true);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar localização salva:", error);
+        localStorage.removeItem("userLocation");
+      }
     }
   }, []);
 
   return {
-    // Estados
     userLocation,
     showCepModal,
     cep,
@@ -150,8 +152,7 @@ const useDonation = () => {
     donationModalIsOpen,
     selectedCompany,
     showConfirmation,
-
-    // Setters
+    hasLocation, 
     setCep,
     setMapCenter,
     setZoomLevel,
@@ -162,7 +163,6 @@ const useDonation = () => {
     setDonationModalIsOpen,
     setShowConfirmation,
 
-    // Funções
     fetchLocationByCEP,
     getUserCurrentLocation,
     openModal: (company) => {
