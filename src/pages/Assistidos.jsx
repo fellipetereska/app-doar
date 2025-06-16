@@ -173,7 +173,7 @@ const Assistidos = () => {
         </div>
 
         {/* Botão Novo */}
-        <div className="w-full sm:w-auto flex justify-end">
+        <div className="w-full lg:w-[150px] flex sm:justify-end justify-center">
           <button 
             className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 sm:px-8 sm:py-2 rounded-md text-sm sm:text-base"
             onClick={() => setIsModalOpen(true)}

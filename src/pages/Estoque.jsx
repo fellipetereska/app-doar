@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 // Componentes
-import TableDefault from '../components/Tables/TableDefault';
-import { SearchInput } from '../components/Inputs/searchInput';
-import Modal from '../components/Modals/Modal';
-import FormEstoque from '../components/Forms/FormEstoque';
-import { getInstituicaoId } from '../components/Auxiliares/helper';
-import { connect } from '../services/api';
-import { toast } from 'react-toastify';
+import TableDefault from "../components/Tables/TableDefault";
+import { SearchInput } from "../components/Inputs/searchInput";
+import Modal from "../components/Modals/Modal";
+import FormEstoque from "../components/Forms/FormEstoque";
+import { getInstituicaoId } from "../components/Auxiliares/helper";
+import { connect } from "../services/api";
+import { toast } from "react-toastify";
 
 const Estoque = () => {
   const [instituicaoId] = useState(getInstituicaoId());
@@ -16,10 +16,10 @@ const Estoque = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const columns = [
-    { header: 'ID', accessor: 'id', sortable: true },
-    { header: 'Categoria', accessor: 'categoria', sortable: true },
-    { header: 'Subcategoria', accessor: 'subcategoria', sortable: true },
-    { header: 'Quantidade', accessor: 'quantidade', sortable: true },
+    { header: "ID", accessor: "id", sortable: true },
+    { header: "Categoria", accessor: "categoria", sortable: true },
+    { header: "Subcategoria", accessor: "subcategoria", sortable: true },
+    { header: "Quantidade", accessor: "quantidade", sortable: true },
   ];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +27,9 @@ const Estoque = () => {
 
   const fetchEstoque = async () => {
     try {
-      const res = await fetch(`${connect}/estoque?instituicaoId=${instituicaoId}`);
+      const res = await fetch(
+        `${connect}/estoque?instituicaoId=${instituicaoId}`
+      );
       const data = await res.json();
       const filterEstoque = data.filter((item) => item.quantidade > 0);
       setEstoque(filterEstoque);
@@ -89,10 +91,11 @@ const Estoque = () => {
         throw new Error(data.message || "Erro ao salvar item.");
       }
 
-      toast.success(onEdit ? "Item atualizado!" : "Item adicionado ao estoque!");
+      toast.success(
+        onEdit ? "Item atualizado!" : "Item adicionado ao estoque!"
+      );
       setOnEdit(null);
       fetchEstoque();
-
     } catch (error) {
       console.error("Erro:", error);
       toast.error("Erro ao salvar item no estoque.");
@@ -101,24 +104,24 @@ const Estoque = () => {
 
   return (
     <div className="min-h-screen flex flex-col px-4 sm:px-6 md:px-8 lg:px-10 py-4">
-      <div className='mb-4'>
+      <div className="mb-4">
         <h1 className="text-xl sm:text-2xl font-bold text-sky-700">Estoque</h1>
       </div>
-      
+
       <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 p-2 sm:p-4">
         {/* Barra de pesquisa */}
         <div className="w-full sm:flex-grow">
           <div className="w-full bg-white rounded-full py-2 px-4 sm:py-3 sm:px-8 shadow">
-            <SearchInput 
-              placeholder="Buscar item no estoque..." 
-              onSearch={handleSearch} 
+            <SearchInput
+              placeholder="Buscar item no estoque..."
+              onSearch={handleSearch}
             />
           </div>
         </div>
 
         {/* Botão */}
-        <div className="w-full sm:w-auto flex justify-end">
-          <button 
+        <div className="w-full lg:w-[150px] flex sm:justify-end justify-center">
+          <button
             className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 sm:px-8 sm:py-2 rounded-md text-sm sm:text-base"
             onClick={() => setIsModalOpen(true)}
           >
@@ -126,7 +129,7 @@ const Estoque = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
         <TableDefault
           columns={columns}
@@ -135,10 +138,10 @@ const Estoque = () => {
         />
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Adicionar Item ao Estoque" 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Adicionar Item ao Estoque"
         paragraph="Preencha o formulário e clique em 'Salvar' para adicionar um item ao estoque!"
       >
         <FormEstoque

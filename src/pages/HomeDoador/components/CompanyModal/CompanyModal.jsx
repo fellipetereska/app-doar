@@ -73,10 +73,10 @@ const CompanyModal = ({
               </div>
 
               <div className="text-center sm:text-left space-y-2 flex-1 min-w-0">
-                <h2 className="text-xl sm:text-2xl font-semibold leading-tight text-gray-800 truncate">
+                <h2 className="text-xl sm:text-2xl font-semibold leading-tight text-gray-800 ">
                   {company.name}
                 </h2>
-                <p className="text-sm sm:text-base text-gray-600 line-clamp-2">
+                <p className="text-sm sm:text-base text-gray-600 ">
                   {company.description}
                 </p>
               </div>
