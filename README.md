@@ -35,7 +35,7 @@ src/
 
 # Clonar o repositório
 git clone https://github.com/fellipetereska/app-doar.git
-cd doar
+cd app-doar
 
 # Instalar dependências
 npm install
