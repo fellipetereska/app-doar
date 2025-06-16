@@ -20,3 +20,28 @@ Este repositório contém o frontend da plataforma **DOAR**, um sistema que cone
 - Responsividade e acessibilidade (WCAG 2.1)
 
 ## 📁 Estrutura de Pastas
+
+src/
+├── components/ # Componentes reutilizáveis da interface
+├── pages/ # Telas principais vinculadas a rotas
+├── services/ # Comunicação com a API (Axios)
+├── contexts/ # Contextos globais (ex: AuthContext)
+├── hooks/ # Hooks customizados
+├── media/ # Imagens e recursos estáticos
+├── App.jsx # Componente principal de rotas
+└── main.jsx # Ponto de entrada da aplicação
+
+## 🛠️ Como rodar o projeto
+
+# Clonar o repositório
+git clone https://github.com/fellipetereska/app-doar.git
+cd doar
+
+# Instalar dependências
+npm install
+
+# Rodar o projeto
+npm start
+
+
+
