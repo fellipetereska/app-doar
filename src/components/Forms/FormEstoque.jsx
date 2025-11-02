@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from '../../services/api';
-
 import { Input, SelectInput, Textarea } from '../Inputs/Inputs';
-import { toast } from 'react-toastify';
+import DatePicker from "react-datepicker"; 
+import "react-datepicker/dist/react-datepicker.css"; 
 
 const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
   const [categorias, setCategorias] = useState([]);
@@ -11,6 +11,7 @@ const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
     subcategoria_id: '',
     descricao: '',
     quantidade: '',
+    data_movimentacao: new Date(), 
     instituicao_id: ''
   });
 
@@ -26,13 +27,17 @@ const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
 
   useEffect(() => {
     if (onEdit) {
-      setForm(onEdit);
+      setForm({ ...onEdit, data_movimentacao: new Date() });
     }
   }, [onEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (date) => {
+    setForm((prev) => ({ ...prev, data_movimentacao: date }));
   };
 
   const handleSubmit = (e) => {
@@ -43,14 +48,27 @@ const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
       subcategoria_id: '',
       descricao: '',
       quantidade: '',
+      data_movimentacao: new Date(), 
       instituicao_id: ''
     });
   };
 
   return (
-
     <form onSubmit={handleSubmit} className="space-y-4 h-full">
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data da Entrada
+            </label>
+            <DatePicker
+                selected={form.data_movimentacao}
+                onChange={handleDateChange}
+                dateFormat="dd/MM/yyyy"
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2"
+                required
+            />
+        </div>
+
         <SelectInput
           label="Categoria"
           name="categoria_id"
@@ -86,8 +104,9 @@ const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
           name="quantidade"
           type="number"
           value={form.quantidade}
-          min={onEdit?.quantidade}
+          min={onEdit ? onEdit.quantidade : 1} 
           onChange={handleChange}
+          required
         />
 
         <Textarea
@@ -105,11 +124,10 @@ const FormEstoque = ({ onSubmit, instituicaoId, onEdit }) => {
           type="submit"
           className="bg-green-600 hover:bg-green-700 transition-all duration-200 text-sm text-white font-bold px-6 py-2 rounded"
         >
-          Adicionar
+          {onEdit ? "Atualizar" : "Adicionar"}
         </button>
       </div>
     </form>
-
   );
 };
 
